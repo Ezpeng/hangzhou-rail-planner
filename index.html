@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>杭州铁路线路规划</title>
+<style>
+/* ============================================================
+   杭州铁路线路规划 · UI 2.0
+   设计令牌（浅色）
+   ============================================================ */
+:root{
+  color-scheme: light;
+  --bg:#f3f5f9; --card:#ffffff; --card2:#f7f8fc; --inset:#eef1f7;
+  --ink:#171d2c; --ink2:#4b5874; --mute:#7a869e;
+  --line:#e3e7f0; --line2:#ecEFF6; --line-strong:#c6cfe0;
+  --accent:#0052d9; --accent-soft:#e8f1ff; --accent-ink:#003cab; --accent-line:#b3cdf6;
+  --accent-grad:linear-gradient(135deg,#0052d9 0%,#1a73ff 60%,#36a3ff 100%);
+  --g:#e83a30;  --g-text:#c92b22;  --g-tint:rgba(232,58,48,.09);
+  --d:#0052d9;  --d-text:#003cab;  --d-tint:rgba(0,82,217,.09);
+  --k:#00a870;  --k-text:#007d54;  --k-tint:rgba(0,168,112,.10);
+  --transfer:#f08a12; --transfer-text:#b36207; --transfer-tint:rgba(240,138,18,.12);
+  --warn:#d97706; --warn-text:#a35605; --warn-tint:rgba(217,119,6,.11);
+  --ferry:#0a8fa0; --ferry-text:#077282; --ferry-tint:rgba(10,143,160,.11);
+  --rail:#a3aec2; --rail-tie:#ccd4e2;
+  --map-fill:#eef2f9; --map-stroke:#c0cce0; --map-grid:#e0e7f2; --glow:rgba(0,82,217,.25);
+  --chip-ink:#fff;
+  --shadow:0 6px 24px rgba(23,43,90,.06);
+  --shadow-lg:0 14px 40px rgba(23,43,90,.13);
+  --r:16px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+/* ---------- 深色主题 ---------- */
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0c111c; --card:#141a28; --card2:#181f30; --inset:#101725;
+    --ink:#e9edf5; --ink2:#9fabc0; --mute:#76829a;
+    --line:#242e44; --line2:#202940; --line-strong:#303d58;
+    --accent:#6aa6ff; --accent-soft:#152642; --accent-ink:#9cc2ff; --accent-line:#2c4a72;
+    --accent-grad:linear-gradient(135deg,#4d94ff 0%,#6ab1ff 60%,#8cc8ff 100%);
+    --g:#ff6b60;  --g-text:#ff8f86;  --g-tint:rgba(255,107,96,.15);
+    --d:#6aa6ff;  --d-text:#8db8ff;  --d-tint:rgba(106,166,255,.15);
+    --k:#35c98f;  --k-text:#5ad9a7;  --k-tint:rgba(53,201,143,.15);
+    --transfer:#f9ab45; --transfer-text:#fbbe6e; --transfer-tint:rgba(249,171,69,.16);
+    --warn:#f0a35c; --warn-text:#f5b979; --warn-tint:rgba(240,163,92,.14);
+    --ferry:#37c0d6; --ferry-text:#5fd0e2; --ferry-tint:rgba(55,192,214,.15);
+    --rail:#52627e; --rail-tie:#3a4a63;
+    --map-fill:#101826; --map-stroke:#2b3a52; --map-grid:#1a2536; --glow:rgba(106,166,255,.25);
+    --shadow:0 10px 30px rgba(0,0,0,.4);
+    --shadow-lg:0 16px 44px rgba(0,0,0,.5);
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.6;padding:0 20px 48px;
+}
+body::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--g) 0 25%,var(--d) 25% 50%,var(--k) 50% 75%,var(--ferry) 75% 100%)}
+.wrap{max-width:880px;margin:0 auto}
+
+/* ---------- 动效系统 ---------- */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes routeDraw{to{stroke-dashoffset:0}}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 var(--transfer-tint)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes trackGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes dotPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes numPop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.anim-in{animation:fadeInUp .38s cubic-bezier(.22,.8,.32,1) both}
+.track{transform-origin:left center;animation:trackGrow .5s cubic-bezier(.22,.8,.32,1) both}
+.node-dot{animation:dotPop .35s cubic-bezier(.22,.8,.32,1) both}
+.node-dot--transfer{animation:dotPop .35s cubic-bezier(.22,.8,.32,1) both,pulseRing 2.4s ease-out .5s infinite}
+.seg-path{animation:routeDraw 1.1s cubic-bezier(.4,0,.2,1) both}
+#mapSvg .draw-once .from-dot,#mapSvg .draw-once .to-dot,#mapSvg .draw-once .xfer-dot,#mapSvg .draw-once .mid-dot{transform-box:fill-box;transform-origin:center;animation:dotPop .45s cubic-bezier(.22,.8,.32,1) both}
+#mapSvg .draw-once .rlabel{animation:fadeInUp .5s cubic-bezier(.22,.8,.32,1) both}
+.ferry-path{stroke-dasharray:13 8;animation:ferryDash 1.6s linear infinite}
+@keyframes ferryDash{to{stroke-dashoffset:-21}}
+.stat-v{animation:numPop .45s cubic-bezier(.22,.8,.32,1) both}
+.tile b{animation:numPop .45s cubic-bezier(.22,.8,.32,1) both}
+@media (prefers-reduced-motion: reduce){
+  .anim-in,.track,.node-dot,.seg-path,.ferry-path,.stat-v,.tile b{animation:none}
+  .seg-path,.ferry-path{stroke-dasharray:none;stroke-dashoffset:0}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 页头 ---------- */
+.page-head{display:flex;align-items:center;gap:12px;margin:20px 0 2px}
+.logo{width:42px;height:42px;border-radius:12px;flex:none;background:var(--accent-grad);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px var(--glow)}
+.logo svg{width:23px;height:23px}
+.page-title{margin:0;font-size:22px;font-weight:700;letter-spacing:.5px;line-height:1.3}
+.page-sub{margin:2px 0 0;font-size:13px;color:var(--ink2)}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.pill{font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+/* ---------- 搜索 ---------- */
+.search-box{position:relative;margin:18px 0 12px}
+.s-input{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--line-strong);border-radius:var(--r);padding:0 14px;height:56px;box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s,transform .2s}
+.s-input:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft),var(--shadow-lg);transform:translateY(-1px)}
+.s-icon{color:var(--mute);display:grid;place-items:center;flex:none}
+.s-input input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--ink);font-size:16px;font-family:inherit;padding:0}
+.s-input input::placeholder{color:var(--mute)}
+.s-kbd{border:1px solid var(--line-strong);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--mute);white-space:nowrap}
+.dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lg);overflow:hidden;display:none;transform-origin:top center}
+.dropdown.show{display:block;animation:fadeInUp .22s cubic-bezier(.22,.8,.32,1) both}
+.dd-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--line)}
+.dd-item:last-of-type{border-bottom:none}
+.dd-item:hover,.dd-item.active{background:var(--accent-soft)}
+.dd-name{font-size:15px;font-weight:600;color:var(--ink)}
+.dd-prov{margin-left:auto;font-size:12px;color:var(--mute);white-space:nowrap}
+.dd-tag{font-size:11px;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.dd-tag--special{color:var(--warn-text);background:var(--warn-tint)}
+.dd-tag--alias{color:var(--d-text);background:var(--d-tint)}
+.dd-tag--none{color:var(--ink2);background:var(--card2);border:1px solid var(--line)}
+.dd-empty{padding:12px 16px;font-size:14px;color:var(--mute)}
+.dd-foot{display:flex;gap:16px;flex-wrap:wrap;padding:9px 16px;font-size:11px;color:var(--mute);background:var(--card2);border-top:1px solid var(--line)}
+
+/* ---------- 热门 + 最近 ---------- */
+.hot-label{font-size:12px;color:var(--mute);margin:16px 0 8px}
+.hot{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:6px 14px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s,background .15s}
+.chip:hover,.chip:focus-visible{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);outline:none}
+.chip.recent{color:var(--ink2);border-style:dashed}
+
+/* ---------- 统计概览 ---------- */
+.stats-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 12px;box-shadow:var(--shadow);margin:14px 0 12px;animation:fadeInUp .38s cubic-bezier(.22,.8,.32,1) both}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{background:var(--card2);border:1px solid var(--line2);border-radius:11px;padding:10px 12px 9px;position:relative;overflow:hidden}
+.tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tbar,var(--accent-soft));border-radius:0 3px 3px 0}
+.tile b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
+.tile i{font-style:normal;font-size:11px;color:var(--mute)}
+.tile.zero b{color:var(--mute)}
+.dist{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line2)}
+.dist-head{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:7px}
+.dist-head i{font-style:normal;font-weight:500;color:var(--mute);font-size:11px}
+.dist-rows{display:flex;flex-direction:column;gap:5px}
+.drow{display:flex;align-items:center;gap:9px}
+.drow .dl{flex:none;width:62px;font-size:11.5px;color:var(--ink2);text-align:right}
+.drow .dt{flex:1;background:var(--inset);border-radius:6px;height:9px;overflow:hidden}
+.drow .dt i{display:block;height:100%;border-radius:6px;min-width:6px;transition:width .35s ease}
+.drow b{flex:none;width:26px;font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.stats-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line2);font-size:11.5px;color:var(--ink2)}
+.stats-foot .src{margin-left:auto;color:var(--mute)}
+.dist-note{display:flex;gap:8px;align-items:flex-start;margin-top:11px;padding:9px 11px;border-radius:9px;background:var(--transfer-tint);color:var(--warn-text);font-size:12.5px;border:1px dashed var(--transfer)}
+
+/* ---------- 筛选器 ---------- */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:5px;background:var(--inset);border-radius:11px;width:fit-content;max-width:100%}
+.seg-btn{border:none;background:transparent;color:var(--ink2);font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .13s}
+.seg-btn:hover{color:var(--accent)}
+.seg-btn[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg-btn .cnt{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-left:3px}
+.seg-btn[aria-pressed="true"] .cnt{color:var(--accent)}
+
+/* ---------- 地图 ---------- */
+.map-wrap{margin:0 0 14px}
+.map-box{position:relative;aspect-ratio:5/3.4;min-height:260px;max-height:460px;border-radius:12px;overflow:hidden;background:var(--map-fill);border:1px solid var(--line);box-shadow:var(--shadow)}
+.map-box svg{display:block;width:100%;height:100%}
+.land{fill:var(--map-fill);stroke:var(--map-stroke);stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 2px 6px rgba(0,0,0,.14))}
+.cdot{cursor:pointer;transition:opacity .25s}
+.cdot.dim{opacity:.28}
+.cdot.focus{stroke:var(--accent);stroke-width:2.5}
+.rlabel{font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3.5px;pointer-events:none}
+.seg-underlay{fill:none;stroke-width:10;opacity:.15;stroke-linecap:round}
+.seg-path{fill:none;stroke-width:3.4;stroke-linecap:round}
+.seg-path.hover{stroke-width:5.5;filter:drop-shadow(0 0 6px var(--glow))}
+.t-G{stroke:var(--g)} .t-D{stroke:var(--d)} .t-K{stroke:var(--k)} .t-F{stroke:var(--ferry)}
+.xfer-dot{fill:var(--card);stroke:var(--transfer);stroke-width:3}
+.xfer-dot.in{fill:var(--transfer);stroke:var(--card);stroke-width:1.5}
+.from-dot{fill:var(--accent);stroke:var(--card);stroke-width:2}
+.to-dot{fill:var(--ink);stroke:var(--card);stroke-width:2}
+.mid-dot{fill:var(--card);stroke:var(--rail);stroke-width:1.6}
+.ferry-path{fill:none;stroke:var(--ferry);stroke-width:2.6;stroke-dasharray:7 6;stroke-linecap:round}
+.map-tip{position:absolute;z-index:30;pointer-events:none;display:none;background:var(--ink);color:var(--card);font-size:12px;line-height:1.4;padding:5px 10px;border-radius:8px;max-width:180px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.map-tip.show{display:block}
+.map-tip b{font-size:13px}
+.map-tip .role{opacity:.75;margin-left:4px}
+.map-cap{position:absolute;top:8px;right:10px;z-index:10;font-size:10px;color:var(--mute);background:var(--card);border:1px solid var(--line);padding:2px 8px;border-radius:999px}
+.map-legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;margin-top:8px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:11px;color:var(--ink2)}
+.lg{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lg .bar{width:18px;height:3px;border-radius:2px}
+.lg .dot{width:8px;height:8px;border-radius:50%;border:2px solid var(--transfer);background:var(--card)}
+.lg .sq{width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.lg .ring{width:8px;height:8px;border-radius:50%;border:2px solid var(--ink)}
+.lg .dash{width:18px;height:0;border-top:2px dashed var(--ferry)}
+
+/* ---------- 方案卡 ---------- */
+.sec-label{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-size:13px;font-weight:600;color:var(--ink2)}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px 16px;margin:14px 0;transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .22s,border-color .22s}
+.card:hover{border-color:var(--accent-line);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.card--special{border-left:3px solid var(--warn)}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.od{font-size:19px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.od .arr{color:var(--mute);display:grid;place-items:center}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap;padding-top:3px}
+.badge{font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap}
+.badge--solid{color:var(--chip-ink)}
+.badge--solid.g{background:linear-gradient(135deg,#f0554b,#e83a30)}
+.badge--solid.d{background:linear-gradient(135deg,#1a73ff,#0052d9)}
+.badge--solid.k{background:linear-gradient(135deg,#12c48a,#00a870)}
+.badge--tf{color:var(--transfer-text);background:var(--transfer-tint)}
+.badge--ok{color:var(--k-text);background:var(--k-tint)}
+.badge--sp{color:var(--warn-text);background:var(--warn-tint)}
+.badge--plain{color:var(--ink2);background:var(--card2);border:1px solid var(--line)}
+
+/* 轨道示意图 */
+.schem{list-style:none;margin:14px 0 4px;padding:14px 12px 12px;display:flex;align-items:flex-start;background:var(--card2);border:1px solid var(--line);border-radius:12px;--tag-block:34px}
+.node{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.node-dot{width:16px;height:16px;border-radius:50%;flex:none;margin-top:var(--tag-block)}
+.node-dot--origin{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.node-dot--dest{background:var(--ink);box-shadow:0 0 0 4px var(--line)}
+.node-dot--pass{background:var(--card);border:2px solid var(--rail)}
+.node-dot--transfer{background:linear-gradient(90deg,var(--t-prev,var(--transfer)) 0 50%,var(--t-next,var(--transfer)) 50% 100%);box-shadow:0 0 0 4px var(--transfer-tint)}
+.node-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.node-role{font-size:10px;padding:1px 8px;border-radius:999px;color:var(--mute);background:var(--card);border:1px solid var(--line);white-space:nowrap}
+.node-role--transfer{color:var(--transfer-text);background:var(--transfer-tint);border-color:transparent}
+.node-hint{font-size:10px;color:var(--mute);white-space:nowrap}
+.link{flex:1;min-width:104px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.line-tag{display:inline-flex;align-items:center;gap:6px;max-width:100%;font-size:12px;font-weight:600;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;white-space:nowrap}
+.linetype{width:20px;height:20px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.linetype.G{background:var(--g)} .linetype.D{background:var(--d)} .linetype.K{background:var(--k)} .linetype.F{background:var(--ferry)}
+.track-box{height:16px;display:flex;align-items:center;width:100%}
+.track{height:8px;width:100%;border-top:2px solid var(--rail-c,var(--rail));border-bottom:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(90deg,var(--rail-tie) 0 3px,transparent 3px 15px)}
+.track--g{--rail-c:var(--g)} .track--d{--rail-c:var(--d)} .track--k{--rail-c:var(--k)}
+.track--ferry{--rail-c:var(--ferry);border-style:dashed;background:none}
+
+/* 信息面板 */
+.panel{border-top:1px dashed var(--line-strong);padding-top:12px;margin-top:12px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.stat-v{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-l{font-size:11px;color:var(--mute);margin-top:1px}
+.t-g{color:var(--g-text)} .t-d{color:var(--d-text)} .t-k{color:var(--k-text)} .t-f{color:var(--ferry-text)}
+.callout{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:9px 12px;border-radius:10px;font-size:13px}
+.callout svg{flex:none;margin-top:3px}
+.callout--ok{background:var(--k-tint);color:var(--k-text)}
+.callout--transfer{background:var(--transfer-tint);color:var(--transfer-text)}
+.callout--warn{background:var(--warn-tint);color:var(--warn-text);border:1px dashed var(--warn)}
+.callout b{font-weight:700}
+.stops{margin-top:12px}
+.stops-label{font-size:12px;color:var(--mute);margin-bottom:6px}
+.stops-grid{display:flex;flex-wrap:wrap;gap:6px}
+.stop{font-size:12px;padding:3px 11px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+.btn-expand{margin-top:8px;border:1px dashed var(--line-strong);background:transparent;color:var(--accent);font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+.btn-expand:hover{background:var(--accent-soft)}
+.t-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.t-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:7px 10px;flex-wrap:wrap}
+.t-idx{width:18px;height:18px;border-radius:50%;flex:none;background:var(--transfer-tint);color:var(--transfer-text);display:grid;place-items:center;font-size:11px;font-weight:700}
+.t-row .linetype{width:16px;height:16px;font-size:9px}
+.t-row .lname{font-weight:600;color:var(--ink)}
+.t-hint{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--transfer-text);padding:2px 4px}
+.t-hint .i{width:13px;height:13px;flex:none}
+.t-hint.k{color:var(--mute)}
+.ref-route{font-size:12px;color:var(--ink2);margin-top:10px}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn-copy{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line-strong);color:var(--ink2);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-copy:hover{border-color:var(--accent);color:var(--accent)}
+.btn-copy.done{color:var(--k-text);border-color:var(--k)}
+.btn12306{display:inline-flex;align-items:center;gap:6px;background:var(--accent-grad);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px var(--glow);transition:transform .18s,box-shadow .18s,filter .18s}
+.btn12306:hover{transform:translateY(-1px);box-shadow:0 8px 20px var(--glow);filter:brightness(1.05)}
+
+/* ---------- 图例 / 页脚 / 省份 ---------- */
+.legend{margin:22px 0 4px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.legend-title{font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 18px}
+.lg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+.lg-track{width:26px;height:8px;flex:none;border-top:2px solid var(--rail-c,var(--rail));border-bottom:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(90deg,var(--rail-tie) 0 2px,transparent 2px 10px)}
+.lg-track--ferry{border-style:dashed;background:none}
+.lg-dot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid var(--transfer);background:var(--card);position:relative;overflow:hidden}
+.lg-dot::after{content:"";position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--g)}
+.lg-dot::before{content:"";position:absolute;right:0;top:0;bottom:0;width:50%;background:var(--d)}
+.allcities{margin:16px 0 0}
+.allcities summary{cursor:pointer;font-size:13px;color:var(--accent);user-select:none}
+.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px;margin-top:10px}
+.prov-grid .p{font-size:13px}
+.prov-grid .p b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+.prov-grid .p span{color:var(--mute);font-size:12px;line-height:1.8}
+.footer{margin:26px 0 8px;color:var(--mute);font-size:12px;text-align:center;line-height:1.9}
+.footer b{color:var(--ink2);font-weight:600}
+.empty-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:34px 20px;text-align:center;color:var(--mute);font-size:14px;margin:14px 0}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:840px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){
+  body{padding:0 16px 40px}
+  .page-title{font-size:20px}
+  .meta{margin-left:0}
+  .card{padding:14px 14px 14px}
+  .schem{flex-direction:column;align-items:stretch;padding:12px 12px 10px}
+  .node{flex-direction:row;width:100%;align-items:center;gap:10px;min-height:38px}
+  .node-dot{margin-top:0}
+  .node-role{margin-left:auto}
+  .link{flex-direction:row;align-items:flex-start;gap:12px;width:100%;min-width:0;padding:2px 0}
+  .link .track-box{order:1;width:8px;height:52px;flex:none;margin-left:4px}
+  .link .line-tag{order:2;margin-top:12px}
+  .track{height:100%;width:8px;border:none;border-left:2px solid var(--rail-c,var(--rail));border-right:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(180deg,var(--rail-tie) 0 3px,transparent 3px 15px);transform-origin:top center}
+  .track--ferry{border-style:dashed;background:none}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .actions .btn12306{flex:1;justify-content:center}
+  .dd-prov{display:none}
+  .map-box{aspect-ratio:5/4}
+}
+
+/* ---------- 深色组件覆盖 ---------- */
+@media (prefers-color-scheme: dark){
+  .badge--solid.g{background:var(--g-tint);color:var(--g-text)}
+  .badge--solid.d{background:var(--d-tint);color:var(--d-text)}
+  .badge--solid.k{background:var(--k-tint);color:var(--k-text)}
+  .linetype{background:var(--card);color:var(--ink)}
+  .linetype.G{background:var(--g-tint);color:var(--g-text)}
+  .linetype.D{background:var(--d-tint);color:var(--d-text)}
+  .linetype.K{background:var(--k-tint);color:var(--k-text)}
+  .linetype.F{background:var(--ferry-tint);color:var(--ferry-text)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="13" rx="4.5"/><path d="M8 3v4.5a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V3"/><circle cx="7.5" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="page-title">杭州铁路线路规划</h1>
+      <p class="page-sub">输入目的地城市，查看从杭州出发的直达 / 中转方案 · 覆盖全国地级市 · 宏观规划参考</p>
+    </div>
+    <div class="meta">
+      <span class="pill" id="pillLines">路网 125 条线路</span>
+      <span class="pill" id="pillCities">338 城可查</span>
+    </div>
+  </header>
+
+  <div class="search-box">
+    <div class="s-input">
+      <span class="s-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="4.5"/><path d="M11 11l4.5 4.5"/></svg>
+      </span>
+      <input type="text" id="q" aria-label="搜索目的地城市" placeholder="输入目的地城市，如：邯郸、普洱、阿勒泰、舟山…" autocomplete="off">
+      <span class="s-kbd">Enter 查询</span>
+    </div>
+    <div class="dropdown" id="dropdown" role="listbox" aria-label="城市建议"></div>
+  </div>
+
+  <p class="hot-label" id="hotLabel">热门城市</p>
+  <div class="hot" id="hot"></div>
+
+  <div id="result"></div>
+
+  <div class="legend" id="legend">
+    <p class="legend-title">图例</p>
+    <div class="legend-grid">
+      <span class="lg-item"><span class="lg-track" style="--rail-c:var(--g)"></span>高铁 G · 300km/h 级</span>
+      <span class="lg-item"><span class="lg-track" style="--rail-c:var(--d)"></span>动车 D · 200~250km/h</span>
+      <span class="lg-item"><span class="lg-track" style="--rail-c:var(--k)"></span>普速 K/T/Z</span>
+      <span class="lg-item"><span class="lg-track lg-track--ferry" style="--rail-c:var(--ferry)"></span>轮渡 / 跨海</span>
+      <span class="lg-item"><span class="lg-dot"></span>换乘点（双色=来向/去向）</span>
+    </div>
+  </div>
+
+  <details class="allcities">
+    <summary>查看全部已收录城市（按省份）</summary>
+    <div class="prov-grid" id="provGrid"></div>
+  </details>
+
+  <p class="footer">
+    本工具为<strong>宏观线路规划</strong>，不提供具体车次、时刻与票价，实际出行请以 12306 实时查询为准。<br>
+    线路数据基于中国高铁「八纵八横」主干及主要普速/支线干线，覆盖全国地级市；地图站点位置为<strong>示意图</strong>。
+  </p>
+</div>
+
+<script type="application/json" id="rail-lines">
+[
+  {"name":"京沪高铁","type":"G","stops":["北京","廊坊","天津","沧州","德州","济南","泰安","枣庄","徐州","宿州","蚌埠","滁州","南京","镇江","常州","无锡","苏州","上海"]},
+  {"name":"京广高铁","type":"G","stops":["北京","保定","石家庄","邢台","邯郸","安阳","鹤壁","新乡","郑州","许昌","漯河","驻马店","信阳","武汉","咸宁","岳阳","长沙","株洲","衡阳","郴州","韶关","清远","广州","深圳"]},
+  {"name":"京哈高铁","type":"G","stops":["北京","承德","朝阳","阜新","沈阳","四平","长春","哈尔滨"]},
+  {"name":"哈大高铁","type":"G","stops":["哈尔滨","长春","四平","沈阳","辽阳","鞍山","营口","大连"]},
+  {"name":"沪昆高铁","type":"G","stops":["上海","嘉兴","杭州","金华","衢州","上饶","鹰潭","南昌","新余","宜春","萍乡","株洲","长沙","湘潭","娄底","怀化","黔东南","贵阳","安顺","曲靖","昆明"]},
+  {"name":"宁杭高铁","type":"G","stops":["南京","湖州","杭州"]},
+  {"name":"杭黄高铁","type":"G","stops":["杭州","黄山"]},
+  {"name":"杭温高铁","type":"G","stops":["杭州","温州"]},
+  {"name":"商合杭高铁","type":"G","stops":["商丘","亳州","阜阳","淮南","合肥","芜湖","宣城","湖州","杭州"]},
+  {"name":"合福高铁","type":"G","stops":["合肥","黄山","上饶","南平","福州"]},
+  {"name":"徐兰高铁","type":"G","stops":["连云港","徐州","商丘","开封","郑州","洛阳","三门峡","渭南","西安","咸阳","宝鸡","天水","定西","兰州"]},
+  {"name":"兰新高铁","type":"G","stops":["兰州","西宁","张掖","嘉峪关","酒泉","哈密","吐鲁番","乌鲁木齐"]},
+  {"name":"成渝高铁","type":"G","stops":["成都","重庆"]},
+  {"name":"郑渝高铁","type":"G","stops":["郑州","南阳","襄阳","重庆"]},
+  {"name":"郑太高铁","type":"G","stops":["郑州","焦作","晋城","长治","太原"]},
+  {"name":"太西高铁","type":"G","stops":["太原","临汾","运城","西安"]},
+  {"name":"京包高铁","type":"G","stops":["北京","张家口","乌兰察布","呼和浩特","包头"]},
+  {"name":"济青高铁","type":"G","stops":["济南","淄博","潍坊","青岛"]},
+  {"name":"广深港高铁","type":"G","stops":["广州","深圳","香港西九龙"]},
+  {"name":"昌赣高铁","type":"G","stops":["南昌","吉安","赣州"]},
+  {"name":"赣深高铁","type":"G","stops":["赣州","河源","惠州","深圳"]},
+  {"name":"沪杭高铁","type":"G","stops":["上海","嘉兴","杭州"]},
+  {"name":"石济高铁","type":"G","stops":["石家庄","衡水","德州","济南"]},
+  {"name":"石太客专","type":"D","stops":["石家庄","阳泉","太原"]},
+  {"name":"西成高铁","type":"D","stops":["西安","汉中","广元","绵阳","德阳","成都"]},
+  {"name":"杭深沿海线","type":"D","stops":["杭州","绍兴","宁波","台州","温州","宁德","福州","莆田","泉州","厦门","漳州","潮州","汕头","汕尾","惠州","深圳"]},
+  {"name":"沪汉蓉通道","type":"D","stops":["上海","南京","合肥","六安","武汉","荆州","宜昌","恩施","重庆","成都"]},
+  {"name":"贵广高铁","type":"D","stops":["贵阳","黔南","桂林","贺州","肇庆","广州"]},
+  {"name":"南广高铁","type":"D","stops":["南宁","贵港","梧州","云浮","肇庆","广州"]},
+  {"name":"云桂高铁","type":"D","stops":["昆明","文山","百色","南宁"]},
+  {"name":"广珠城际","type":"D","stops":["广州","佛山","中山","珠海"]},
+  {"name":"津秦高铁","type":"G","stops":["天津","唐山","秦皇岛"]},
+  {"name":"银西高铁","type":"G","stops":["银川","吴忠","庆阳","西安"]},
+  {"name":"郑阜高铁","type":"G","stops":["郑州","周口","阜阳"]},
+  {"name":"武九高铁","type":"G","stops":["武汉","鄂州","黄石","九江"]},
+  {"name":"昌九城际","type":"D","stops":["南昌","九江"]},
+  {"name":"龙厦高铁","type":"D","stops":["龙岩","漳州","厦门"]},
+  {"name":"赣瑞龙高铁","type":"D","stops":["赣州","龙岩"]},
+  {"name":"江湛高铁","type":"D","stops":["广州","江门","阳江","茂名","湛江"]},
+  {"name":"海南环岛高铁","type":"D","stops":["海口","儋州","东方","三亚","万宁","海口"]},
+  {"name":"粤海铁路(轮渡)","type":"K","stops":["湛江","海口"]},
+  {"name":"哈佳高铁","type":"G","stops":["哈尔滨","佳木斯"]},
+  {"name":"哈牡高铁","type":"G","stops":["哈尔滨","牡丹江"]},
+  {"name":"长珲城际","type":"D","stops":["长春","吉林","延边","珲春"]},
+  {"name":"沈丹高铁","type":"G","stops":["沈阳","本溪","丹东"]},
+  {"name":"青荣城际","type":"D","stops":["青岛","烟台","威海"]},
+  {"name":"济郑高铁","type":"G","stops":["济南","聊城","濮阳","郑州"]},
+  {"name":"京沪铁路","type":"K","stops":["北京","天津","沧州","德州","济南","徐州","蚌埠","南京","常州","无锡","苏州","上海"]},
+  {"name":"京广铁路","type":"K","stops":["北京","保定","石家庄","邯郸","安阳","郑州","许昌","漯河","信阳","武汉","岳阳","长沙","衡阳","郴州","韶关","广州"]},
+  {"name":"京九铁路","type":"K","stops":["北京","衡水","聊城","菏泽","商丘","亳州","阜阳","九江","南昌","吉安","赣州","河源","惠州","深圳"]},
+  {"name":"京哈铁路","type":"K","stops":["北京","秦皇岛","葫芦岛","锦州","盘锦","沈阳","铁岭","四平","长春","哈尔滨"]},
+  {"name":"陇海铁路","type":"K","stops":["连云港","徐州","商丘","开封","郑州","洛阳","三门峡","渭南","西安","宝鸡","天水","兰州"]},
+  {"name":"兰新铁路","type":"K","stops":["兰州","武威","金昌","张掖","嘉峪关","哈密","吐鲁番","乌鲁木齐","昌吉","博尔塔拉"]},
+  {"name":"沪昆铁路","type":"K","stops":["上海","嘉兴","杭州","金华","衢州","上饶","鹰潭","南昌","新余","宜春","萍乡","株洲","娄底","怀化","贵阳","安顺","六盘水","曲靖","昆明"]},
+  {"name":"青藏铁路","type":"K","stops":["西宁","海西","那曲","拉萨"]},
+  {"name":"宝成铁路","type":"K","stops":["宝鸡","广元","绵阳","德阳","成都"]},
+  {"name":"川黔铁路","type":"K","stops":["重庆","遵义","贵阳"]},
+  {"name":"成昆铁路","type":"K","stops":["成都","眉山","乐山","凉山","攀枝花","昆明"]},
+  {"name":"湘桂铁路","type":"K","stops":["衡阳","永州","桂林","柳州","来宾","南宁","崇左"]},
+  {"name":"京包铁路","type":"K","stops":["北京","张家口","大同","乌兰察布","呼和浩特","包头"]},
+  {"name":"包兰铁路","type":"K","stops":["包头","巴彦淖尔","乌海","石嘴山","银川","中卫","白银","兰州"]},
+  {"name":"太中银铁路","type":"K","stops":["太原","吕梁","银川"]},
+  {"name":"南疆铁路","type":"K","stops":["吐鲁番","巴音郭楞","阿克苏","克孜勒苏","喀什","和田"]},
+  {"name":"兰青铁路","type":"K","stops":["兰州","海东","西宁"]},
+  {"name":"滨洲铁路","type":"K","stops":["哈尔滨","大庆","齐齐哈尔","呼伦贝尔","满洲里"]},
+  {"name":"滨绥铁路","type":"K","stops":["哈尔滨","牡丹江","绥芬河"]},
+  {"name":"沈大铁路","type":"K","stops":["沈阳","鞍山","大连"]},
+  {"name":"胶济铁路","type":"K","stops":["济南","淄博","潍坊","青岛"]},
+  {"name":"焦柳铁路","type":"K","stops":["焦作","洛阳","平顶山","襄阳","荆门","宜昌","怀化","柳州"]},
+  {"name":"皖赣铁路","type":"K","stops":["芜湖","宣城","黄山","景德镇","鹰潭"]},
+  {"name":"鹰厦铁路","type":"K","stops":["鹰潭","三明","厦门"]},
+  {"name":"黎湛铁路","type":"K","stops":["玉林","湛江"]},
+  {"name":"黔桂铁路","type":"K","stops":["贵阳","河池","柳州"]},
+  {"name":"成渝铁路","type":"K","stops":["成都","资阳","内江","重庆"]},
+  {"name":"襄渝铁路","type":"K","stops":["襄阳","十堰","安康","达州","广安","重庆"]},
+  {"name":"宁西铁路","type":"K","stops":["南京","信阳","南阳","商洛","西安"]},
+  {"name":"拉日铁路","type":"K","stops":["拉萨","日喀则"]},
+  {"name":"拉林铁路","type":"D","stops":["拉萨","山南","林芝"]},
+  {"name":"青盐铁路","type":"D","stops":["青岛","日照","连云港","盐城"]},
+  {"name":"盐通高铁","type":"G","stops":["盐城","南通"]},
+  {"name":"连淮扬镇高铁","type":"D","stops":["连云港","淮安","扬州","镇江"]},
+  {"name":"徐盐高铁","type":"D","stops":["徐州","宿迁","淮安","盐城"]},
+  {"name":"宁启铁路","type":"D","stops":["南京","扬州","泰州","南通"]},
+  {"name":"日兰高铁","type":"G","stops":["日照","临沂","济宁","菏泽"]},
+  {"name":"德大铁路","type":"K","stops":["德州","滨州","东营"]},
+  {"name":"宁安高铁","type":"D","stops":["南京","马鞍山","芜湖","铜陵","池州","安庆"]},
+  {"name":"向莆铁路","type":"D","stops":["南昌","抚州","三明","莆田"]},
+  {"name":"汉十高铁","type":"G","stops":["武汉","孝感","随州","襄阳","十堰"]},
+  {"name":"黄黄高铁","type":"G","stops":["黄冈","九江"]},
+  {"name":"黔张常高铁","type":"D","stops":["常德","张家界"]},
+  {"name":"张吉怀高铁","type":"G","stops":["张家界","湘西","怀化"]},
+  {"name":"怀邵衡铁路","type":"D","stops":["怀化","邵阳","衡阳"]},
+  {"name":"常益长高铁","type":"G","stops":["常德","益阳","长沙"]},
+  {"name":"梅汕高铁","type":"D","stops":["梅州","揭阳","汕头"]},
+  {"name":"广深铁路","type":"D","stops":["广州","东莞","深圳"]},
+  {"name":"广西沿海铁路","type":"D","stops":["南宁","钦州","防城港","北海"]},
+  {"name":"成贵高铁","type":"D","stops":["成都","乐山","宜宾","毕节","贵阳"]},
+  {"name":"绵泸高铁","type":"D","stops":["内江","自贡","泸州"]},
+  {"name":"达成铁路","type":"K","stops":["达州","南充","遂宁","成都"]},
+  {"name":"成雅铁路","type":"D","stops":["成都","雅安"]},
+  {"name":"广巴铁路","type":"K","stops":["广元","巴中"]},
+  {"name":"南昆铁路","type":"K","stops":["昆明","黔西南","百色"]},
+  {"name":"铜玉铁路","type":"D","stops":["怀化","铜仁"]},
+  {"name":"昆楚大铁路","type":"D","stops":["昆明","楚雄","大理"]},
+  {"name":"大丽铁路","type":"D","stops":["大理","丽江"]},
+  {"name":"大临铁路","type":"D","stops":["大理","临沧"]},
+  {"name":"中老铁路","type":"D","stops":["昆明","玉溪","普洱","西双版纳"]},
+  {"name":"大瑞铁路","type":"D","stops":["大理","保山","德宏"]},
+  {"name":"内昆铁路","type":"K","stops":["内江","宜宾","昭通","六盘水"]},
+  {"name":"昆河铁路","type":"K","stops":["昆明","红河"]},
+  {"name":"包西铁路","type":"K","stops":["包头","鄂尔多斯","榆林","延安","西安"]},
+  {"name":"西平铁路","type":"K","stops":["西安","平凉"]},
+  {"name":"兰渝铁路","type":"K","stops":["兰州","陇南","广元","南充","重庆"]},
+  {"name":"宝中铁路","type":"K","stops":["宝鸡","固原","中卫"]},
+  {"name":"北疆铁路","type":"K","stops":["乌鲁木齐","克拉玛依"]},
+  {"name":"精伊霍铁路","type":"K","stops":["博尔塔拉","伊犁"]},
+  {"name":"克塔铁路","type":"K","stops":["克拉玛依","塔城"]},
+  {"name":"北阿铁路","type":"K","stops":["克拉玛依","阿勒泰"]},
+  {"name":"同蒲铁路","type":"K","stops":["大同","朔州","忻州","太原","晋中","临汾","运城"]},
+  {"name":"京通铁路","type":"K","stops":["北京","赤峰","通辽"]},
+  {"name":"白阿铁路","type":"K","stops":["白城","兴安"]},
+  {"name":"沈吉铁路","type":"K","stops":["沈阳","抚顺","吉林"]},
+  {"name":"四梅铁路","type":"K","stops":["四平","辽源"]},
+  {"name":"长白铁路","type":"K","stops":["长春","松原","白城"]},
+  {"name":"滨北铁路","type":"K","stops":["哈尔滨","绥化"]},
+  {"name":"金温铁路","type":"D","stops":["金华","丽水","温州"]}
+]
+</script>
+
+<script type="application/json" id="rail-special">
+{
+  "海口": {"note":"海南岛无跨海铁路桥，火车需经粤海铁路轮渡过海。建议：先高铁到广州/湛江，再转乘过海列车，到海口后转海南环岛高铁。","suggest":"杭州 → 广州南(高铁) → 海口(轮渡过海)"},
+  "三亚": {"note":"海南岛无跨海铁路桥，无法火车直达。建议：先高铁到广州/湛江，轮渡过海到海口，再转海南环岛高铁到三亚。","suggest":"杭州 → 广州南(高铁) → 海口(轮渡) → 三亚(环岛高铁)"},
+  "澳门": {"note":"澳门无铁路，需乘广珠城际至珠海站后，从拱北口岸过关。","suggest":"杭州 → 广州南(高铁) → 珠海(广珠城际) → 过关到澳门"},
+  "台北": {"note":"台湾无跨海铁路，无铁路客运方案，需乘飞机或海路。","suggest":"无铁路方案，建议飞机"},
+  "高雄": {"note":"台湾无跨海铁路，无铁路客运方案。","suggest":"无铁路方案"},
+  "舟山": {"note":"甬舟铁路在建，目前舟山暂不通铁路。建议：高铁到宁波，再转公路/轮渡/客运。","suggest":"杭州 → 宁波(高铁) → 舟山(公路/轮渡)"},
+  "怒江": {"note":"怒江暂不通铁路。建议：高铁到大理或保山，再转公路。","suggest":"杭州 → 昆明(高铁) → 大理/保山 → 怒江(公路)"},
+  "迪庆": {"note":"迪庆（香格里拉）暂不通铁路。建议：高铁到丽江，再转公路。","suggest":"杭州 → 昆明(高铁) → 丽江 → 迪庆(公路)"},
+  "阿里": {"note":"阿里地区无铁路。建议：飞或陆路到拉萨后转。","suggest":"无铁路方案，建议航空"},
+  "昌都": {"note":"川藏铁路在建，昌都暂不通铁路。建议：飞或陆路到成都/拉萨转。","suggest":"无铁路方案，建议航空/公路"},
+  "甘孜": {"note":"甘孜（康定）暂不通铁路。建议：高铁到成都后转公路/客运。","suggest":"杭州 → 成都(高铁) → 康定(公路)"},
+  "阿坝": {"note":"阿坝暂不通铁路。建议：高铁到成都后转公路。","suggest":"杭州 → 成都(高铁) → 阿坝(公路)"},
+  "玉树": {"note":"玉树无铁路。建议：到西宁后转公路/航空。","suggest":"杭州 → 西宁(高铁) → 玉树(公路/航空)"},
+  "果洛": {"note":"果洛无铁路。建议：到西宁后转公路/航空。","suggest":"杭州 → 西宁(高铁) → 果洛(公路/航空)"},
+  "黄南": {"note":"黄南无铁路。建议：到西宁后转公路。","suggest":"杭州 → 西宁(高铁) → 黄南(公路)"},
+  "海北": {"note":"海北无铁路。建议：到西宁后转公路。","suggest":"杭州 → 西宁(高铁) → 海北(公路)"},
+  "海南州": {"note":"海南州（共和）无铁路。建议：到西宁后转公路。","suggest":"杭州 → 西宁(高铁) → 海南州(公路)"},
+  "阿拉善盟": {"note":"阿拉善盟无铁路。建议：到银川或呼和浩特后转公路。","suggest":"杭州 → 银川(高铁) → 阿拉善(公路)"},
+  "锡林郭勒盟": {"note":"锡林郭勒盟无铁路。建议：到呼和浩特后转公路/航空。","suggest":"杭州 → 呼和浩特(高铁) → 锡林郭勒(公路)"},
+  "三沙": {"note":"三沙无铁路，需航空或海路。","suggest":"无铁路方案"},
+  "大兴安岭": {"note":"大兴安岭（加格达奇）仅有嫩林铁路支线，班次少。建议：到哈尔滨/齐齐哈尔后转。","suggest":"杭州 → 哈尔滨(高铁) → 加格达奇(支线/公路)"},
+  "淮北": {"note":"淮北经郑徐高铁萧县北站联络线接入铁路网。建议：高铁到徐州后转乘。","suggest":"杭州 → 徐州(高铁) → 淮北(联络线)"},
+  "通化": {"note":"通化仅有梅集铁路支线，班次少。建议：高铁到长春/沈阳后转。","suggest":"杭州 → 长春(高铁) → 通化(支线)"},
+  "白山": {"note":"白山仅有鸭大铁路支线，班次少。建议：高铁到长春后转。","suggest":"杭州 → 长春(高铁) → 白山(支线/公路)"},
+  "鸡西": {"note":"鸡西仅有林密铁路支线。建议：高铁到哈尔滨后转牡丹江方向。","suggest":"杭州 → 哈尔滨(高铁) → 牡丹江 → 鸡西(支线)"},
+  "鹤岗": {"note":"鹤岗仅有鹤岗支线铁路。建议：高铁到哈尔滨后转佳木斯方向。","suggest":"杭州 → 哈尔滨(高铁) → 佳木斯 → 鹤岗(支线)"},
+  "双鸭山": {"note":"双鸭山经牡佳铁路支线。建议：高铁到哈尔滨后转佳木斯方向。","suggest":"杭州 → 哈尔滨(高铁) → 佳木斯 → 双鸭山(支线)"},
+  "七台河": {"note":"七台河经勃七铁路支线。建议：高铁到哈尔滨后转牡丹江/佳木斯方向。","suggest":"杭州 → 哈尔滨(高铁) → 牡丹江/佳木斯 → 七台河(支线)"},
+  "伊春": {"note":"伊春经绥佳铁路支线。建议：高铁到哈尔滨后转。","suggest":"杭州 → 哈尔滨(高铁) → 伊春(支线)"},
+  "黑河": {"note":"黑河经北黑铁路支线，班次少。建议：高铁到哈尔滨后转。","suggest":"杭州 → 哈尔滨(高铁) → 黑河(支线/公路)"},
+  "铜川": {"note":"铜川铁路以货运为主，客运极少。建议：高铁到西安后转公路。","suggest":"杭州 → 西安(高铁) → 铜川(公路)"},
+  "临夏": {"note":"兰合铁路在建，临夏暂不通铁路。建议：高铁到兰州后转公路。","suggest":"杭州 → 兰州(高铁) → 临夏(公路)"},
+  "甘南": {"note":"兰合铁路在建，甘南暂不通铁路。建议：高铁到兰州后转公路。","suggest":"杭州 → 兰州(高铁) → 甘南(公路)"}
+}
+</script>
+
+<script type="application/json" id="rail-alias">
+{"香港":"香港西九龙","乌市":"乌鲁木齐","呼市":"呼和浩特","拉萨市":"拉萨","海拉尔":"呼伦贝尔","延吉":"延边","格尔木":"海西","吉首":"湘西","凯里":"黔东南","西昌":"凉山","库尔勒":"巴音郭楞","伊宁":"伊犁","博乐":"博尔塔拉","加格达奇":"大兴安岭","香格里拉":"迪庆","康定":"甘孜","兴义":"黔西南","都匀":"黔南","蒙自":"红河","芒市":"德宏","乌兰浩特":"兴安","共和":"海南州"}
+</script>
+
+<script type="application/json" id="rail-direct">
+{
+  "北京":{"t":"G","r":"宁杭高铁＋京沪高铁"},
+  "天津":{"t":"G","r":"宁杭高铁＋京沪高铁"},
+  "济南":{"t":"G","r":"京沪高铁"},
+  "徐州":{"t":"G","r":"京沪高铁"},
+  "蚌埠":{"t":"G","r":"京沪高铁"},
+  "郑州":{"t":"G","r":"商合杭高铁＋郑徐高铁"},
+  "西安":{"t":"G","r":"郑徐高铁＋徐兰高铁"},
+  "兰州":{"t":"G","r":"徐兰高铁"},
+  "武汉":{"t":"G","r":"合武线（沪汉蓉通道）"},
+  "成都":{"t":"D","r":"沪汉蓉通道（经武汉、重庆）"},
+  "重庆":{"t":"D","r":"沪汉蓉通道（经武汉）"},
+  "广州":{"t":"G","r":"杭深沿海线＋广深港高铁"},
+  "香港西九龙":{"t":"G","r":"杭深沿海线＋广深港高铁"},
+  "青岛":{"t":"G","r":"京沪高铁＋济青高铁"},
+  "太原":{"t":"G","r":"郑太高铁（经郑州）"},
+  "石家庄":{"t":"G","r":"京广高铁（经郑州）"},
+  "南宁":{"t":"G","r":"经贵阳（贵南/南广方向）"},
+  "大连":{"t":"G","r":"京沪高铁＋津秦高铁（经天津、秦皇岛）"},
+  "沈阳":{"t":"G","r":"京沪高铁＋京哈高铁（经北京/天津）"},
+  "长春":{"t":"G","r":"京沪高铁＋京哈高铁（经北京/天津）"},
+  "哈尔滨":{"t":"G","r":"京沪高铁＋京哈高铁（经北京/天津）"},
+  "桂林":{"t":"G","r":"沪昆高铁＋贵广高铁（经贵阳）"}
+}
+</script>
+
+<script type="application/json" id="rail-province">
+{
+  "北京":"北京","天津":"天津","上海":"上海","重庆":"重庆","香港西九龙":"香港",
+  "石家庄":"河北","唐山":"河北","秦皇岛":"河北","邯郸":"河北","邢台":"河北","保定":"河北","张家口":"河北","承德":"河北","沧州":"河北","廊坊":"河北","衡水":"河北",
+  "太原":"山西","大同":"山西","阳泉":"山西","长治":"山西","晋城":"山西","朔州":"山西","晋中":"山西","运城":"山西","忻州":"山西","临汾":"山西","吕梁":"山西",
+  "呼和浩特":"内蒙古","包头":"内蒙古","乌海":"内蒙古","赤峰":"内蒙古","通辽":"内蒙古","鄂尔多斯":"内蒙古","呼伦贝尔":"内蒙古","巴彦淖尔":"内蒙古","乌兰察布":"内蒙古","兴安":"内蒙古","阿拉善盟":"内蒙古","锡林郭勒盟":"内蒙古","满洲里":"内蒙古",
+  "沈阳":"辽宁","大连":"辽宁","鞍山":"辽宁","抚顺":"辽宁","本溪":"辽宁","丹东":"辽宁","锦州":"辽宁","营口":"辽宁","阜新":"辽宁","辽阳":"辽宁","盘锦":"辽宁","铁岭":"辽宁","朝阳":"辽宁","葫芦岛":"辽宁",
+  "长春":"吉林","吉林":"吉林","四平":"吉林","辽源":"吉林","通化":"吉林","白山":"吉林","松原":"吉林","白城":"吉林","延边":"吉林",
+  "哈尔滨":"黑龙江","齐齐哈尔":"黑龙江","鸡西":"黑龙江","鹤岗":"黑龙江","双鸭山":"黑龙江","大庆":"黑龙江","伊春":"黑龙江","佳木斯":"黑龙江","七台河":"黑龙江","牡丹江":"黑龙江","黑河":"黑龙江","绥化":"黑龙江","大兴安岭":"黑龙江","绥芬河":"黑龙江",
+  "南京":"江苏","无锡":"江苏","徐州":"江苏","常州":"江苏","苏州":"江苏","南通":"江苏","连云港":"江苏","淮安":"江苏","盐城":"江苏","扬州":"江苏","镇江":"江苏","泰州":"江苏","宿迁":"江苏",
+  "杭州":"浙江","宁波":"浙江","温州":"浙江","嘉兴":"浙江","湖州":"浙江","绍兴":"浙江","金华":"浙江","衢州":"浙江","舟山":"浙江","台州":"浙江","丽水":"浙江",
+  "合肥":"安徽","芜湖":"安徽","蚌埠":"安徽","淮南":"安徽","马鞍山":"安徽","淮北":"安徽","铜陵":"安徽","安庆":"安徽","黄山":"安徽","滁州":"安徽","阜阳":"安徽","宿州":"安徽","六安":"安徽","亳州":"安徽","池州":"安徽","宣城":"安徽",
+  "福州":"福建","厦门":"福建","莆田":"福建","三明":"福建","泉州":"福建","漳州":"福建","南平":"福建","龙岩":"福建","宁德":"福建",
+  "南昌":"江西","景德镇":"江西","萍乡":"江西","九江":"江西","新余":"江西","鹰潭":"江西","赣州":"江西","吉安":"江西","宜春":"江西","抚州":"江西","上饶":"江西",
+  "济南":"山东","青岛":"山东","淄博":"山东","枣庄":"山东","东营":"山东","烟台":"山东","潍坊":"山东","济宁":"山东","泰安":"山东","威海":"山东","日照":"山东","临沂":"山东","德州":"山东","聊城":"山东","滨州":"山东","菏泽":"山东",
+  "郑州":"河南","开封":"河南","洛阳":"河南","平顶山":"河南","安阳":"河南","鹤壁":"河南","新乡":"河南","焦作":"河南","濮阳":"河南","许昌":"河南","漯河":"河南","三门峡":"河南","南阳":"河南","商丘":"河南","信阳":"河南","周口":"河南","驻马店":"河南",
+  "武汉":"湖北","黄石":"湖北","十堰":"湖北","宜昌":"湖北","襄阳":"湖北","鄂州":"湖北","荆门":"湖北","孝感":"湖北","荆州":"湖北","黄冈":"湖北","咸宁":"湖北","随州":"湖北","恩施":"湖北",
+  "长沙":"湖南","株洲":"湖南","湘潭":"湖南","衡阳":"湖南","邵阳":"湖南","岳阳":"湖南","常德":"湖南","张家界":"湖南","益阳":"湖南","郴州":"湖南","永州":"湖南","怀化":"湖南","娄底":"湖南","湘西":"湖南",
+  "广州":"广东","韶关":"广东","深圳":"广东","珠海":"广东","汕头":"广东","佛山":"广东","江门":"广东","湛江":"广东","茂名":"广东","肇庆":"广东","惠州":"广东","梅州":"广东","汕尾":"广东","河源":"广东","阳江":"广东","清远":"广东","东莞":"广东","中山":"广东","潮州":"广东","揭阳":"广东","云浮":"广东",
+  "南宁":"广西","柳州":"广西","桂林":"广西","梧州":"广西","北海":"广西","防城港":"广西","钦州":"广西","贵港":"广西","玉林":"广西","百色":"广西","贺州":"广西","河池":"广西","来宾":"广西","崇左":"广西",
+  "海口":"海南","三亚":"海南","儋州":"海南","三沙":"海南",
+  "成都":"四川","自贡":"四川","攀枝花":"四川","泸州":"四川","德阳":"四川","绵阳":"四川","广元":"四川","遂宁":"四川","内江":"四川","乐山":"四川","南充":"四川","眉山":"四川","宜宾":"四川","广安":"四川","达州":"四川","雅安":"四川","巴中":"四川","资阳":"四川","阿坝":"四川","甘孜":"四川","凉山":"四川",
+  "贵阳":"贵州","六盘水":"贵州","遵义":"贵州","安顺":"贵州","毕节":"贵州","铜仁":"贵州","黔西南":"贵州","黔东南":"贵州","黔南":"贵州",
+  "昆明":"云南","曲靖":"云南","玉溪":"云南","保山":"云南","昭通":"云南","丽江":"云南","普洱":"云南","临沧":"云南","楚雄":"云南","红河":"云南","文山":"云南","西双版纳":"云南","大理":"云南","德宏":"云南","怒江":"云南","迪庆":"云南",
+  "拉萨":"西藏","日喀则":"西藏","昌都":"西藏","林芝":"西藏","山南":"西藏","那曲":"西藏","阿里":"西藏",
+  "西安":"陕西","铜川":"陕西","宝鸡":"陕西","咸阳":"陕西","渭南":"陕西","延安":"陕西","汉中":"陕西","榆林":"陕西","安康":"陕西","商洛":"陕西",
+  "兰州":"甘肃","嘉峪关":"甘肃","金昌":"甘肃","白银":"甘肃","天水":"甘肃","武威":"甘肃","张掖":"甘肃","平凉":"甘肃","酒泉":"甘肃","庆阳":"甘肃","定西":"甘肃","陇南":"甘肃","临夏":"甘肃","甘南":"甘肃",
+  "西宁":"青海","海东":"青海","海北":"青海","黄南":"青海","海南州":"青海","果洛":"青海","玉树":"青海","海西":"青海",
+  "银川":"宁夏","石嘴山":"宁夏","吴忠":"宁夏","固原":"宁夏","中卫":"宁夏",
+  "乌鲁木齐":"新疆","克拉玛依":"新疆","吐鲁番":"新疆","哈密":"新疆","昌吉":"新疆","博尔塔拉":"新疆","巴音郭楞":"新疆","阿克苏":"新疆","克孜勒苏":"新疆","喀什":"新疆","和田":"新疆","伊犁":"新疆","塔城":"新疆","阿勒泰":"新疆",
+  "台北":"台湾","高雄":"台湾","澳门":"澳门"
+}
+</script>
+
+<script type="application/json" id="rail-citypos">
+{
+  "北京":[694,296],"天津":[707,312],"石家庄":[664,335],"太原":[633,339],"呼和浩特":[620,280],"包头":[592,280],
+  "沈阳":[807,256],"长春":[837,214],"哈尔滨":[858,173],"上海":[772,478],"南京":[733,461],"徐州":[708,414],
+  "济南":[706,364],"青岛":[755,372],"郑州":[650,404],"武汉":[661,492],"长沙":[639,541],"广州":[644,648],
+  "深圳":[657,660],"南宁":[566,655],"海口":[597,713],"三亚":[584,751],"重庆":[537,513],"成都":[497,492],
+  "贵阳":[538,574],"昆明":[477,612],"拉萨":[290,511],"西安":[575,413],"兰州":[493,377],"西宁":[460,365],
+  "银川":[532,326],"乌鲁木齐":[234,214],"克拉玛依":[190,176],"阿勒泰":[242,129],"杭州":[754,498],
+  "福州":[741,586],"厦门":[716,620],"南昌":[686,532],"合肥":[708,466],"桂林":[597,603],"台北":[766,595],
+  "香港西九龙":[659,666],"喀什":[48,305],"大理":[436,596],"温州":[760,548],"唐山":[723,302],"湛江":[592,683],
+  "保定":[673,327],"邯郸":[653,357],"邢台":[660,346],"沧州":[700,326],"廊坊":[700,311],"承德":[715,271],"张家口":[660,272],"衡水":[690,345],"秦皇岛":[742,286],
+  "大同":[630,301],"阳泉":[640,331],"长治":[641,355],"晋城":[649,370],"朔州":[621,305],"忻州":[625,320],"晋中":[635,341],"运城":[621,380],"临汾":[619,366],"吕梁":[606,341],
+  "赤峰":[772,242],"通辽":[792,222],"鄂尔多斯":[586,316],"呼伦贝尔":[792,142],"巴彦淖尔":[546,296],"乌兰察布":[631,286],"乌海":[556,301],"兴安":[802,182],"锡林郭勒盟":[702,242],"阿拉善盟":[482,322],"满洲里":[762,128],
+  "大连":[813,302],"鞍山":[812,281],"抚顺":[815,266],"本溪":[816,276],"丹东":[831,292],"锦州":[791,281],"营口":[806,296],"阜新":[796,256],"辽阳":[813,279],"盘锦":[799,286],"铁岭":[816,251],"朝阳":[791,246],"葫芦岛":[783,276],
+  "吉林":[846,206],"四平":[831,236],"辽源":[831,231],"通化":[841,246],"白山":[846,256],"松原":[821,201],"白城":[801,196],"延边":[876,211],
+  "齐齐哈尔":[836,156],"大庆":[841,166],"绥化":[856,181],"伊春":[871,151],"佳木斯":[881,161],"七台河":[876,176],"鸡西":[886,181],"双鸭山":[886,171],"鹤岗":[881,166],"牡丹江":[871,196],"黑河":[831,121],"大兴安岭":[801,101],
+  "无锡":[748,471],"苏州":[762,479],"常州":[742,471],"镇江":[740,466],"扬州":[736,456],"泰州":[741,456],"南通":[761,456],"盐城":[746,441],"淮安":[731,436],"宿迁":[716,431],"连云港":[721,416],
+  "嘉兴":[761,489],"湖州":[746,491],"绍兴":[759,506],"金华":[746,516],"衢州":[736,521],"台州":[766,531],"丽水":[741,536],"舟山":[776,496],"宁波":[769,516],
+  "芜湖":[716,476],"蚌埠":[706,446],"淮南":[701,451],"马鞍山":[719,473],"铜陵":[706,481],"安庆":[696,491],"黄山":[726,511],"滁州":[721,456],"阜阳":[676,431],"宿州":[701,431],"六安":[681,461],"亳州":[671,426],"池州":[706,486],"宣城":[723,486],"淮北":[691,421],
+  "莆田":[738,601],"泉州":[728,611],"漳州":[716,626],"三明":[716,581],"南平":[716,566],"龙岩":[701,601],"宁德":[746,581],
+  "景德镇":[701,531],"萍乡":[666,546],"九江":[681,516],"新余":[671,546],"鹰潭":[691,536],"赣州":[681,571],"吉安":[681,551],"宜春":[669,541],"抚州":[691,541],"上饶":[706,531],
+  "淄博":[711,371],"枣庄":[701,401],"东营":[716,361],"烟台":[781,361],"潍坊":[731,376],"济宁":[691,391],"泰安":[699,376],"威海":[801,366],"日照":[726,401],"临沂":[711,406],"德州":[691,356],"聊城":[676,381],"滨州":[706,356],"菏泽":[666,396],
+  "开封":[656,406],"洛阳":[636,406],"平顶山":[646,421],"安阳":[646,371],"鹤壁":[651,376],"新乡":[649,391],"焦作":[641,386],"濮阳":[661,381],"许昌":[651,416],"漯河":[656,431],"三门峡":[616,401],"南阳":[636,446],"商丘":[681,406],"信阳":[656,461],"周口":[666,431],"驻马店":[651,446],
+  "黄石":[671,501],"十堰":[591,451],"宜昌":[621,481],"襄阳":[621,441],"鄂州":[671,496],"荆门":[636,476],"孝感":[656,476],"荆州":[641,491],"黄冈":[676,491],"咸宁":[661,511],"随州":[641,456],"恩施":[596,511],
+  "株洲":[643,546],"湘潭":[639,541],"衡阳":[641,561],"邵阳":[631,566],"岳阳":[646,526],"常德":[621,541],"张家界":[606,531],"益阳":[633,546],"郴州":[641,586],"永州":[631,581],"怀化":[616,566],"娄底":[633,556],"湘西":[611,536],
+  "韶关":[646,621],"珠海":[646,661],"汕头":[686,636],"佛山":[641,656],"江门":[636,666],"茂名":[611,671],"肇庆":[621,651],"惠州":[661,646],"梅州":[676,616],"汕尾":[671,646],"河源":[666,636],"阳江":[621,666],"清远":[641,636],"东莞":[651,656],"中山":[646,663],"潮州":[683,631],"揭阳":[681,633],"云浮":[621,661],
+  "柳州":[601,631],"梧州":[631,641],"北海":[586,681],"防城港":[571,681],"钦州":[581,666],"贵港":[601,646],"玉林":[616,656],"百色":[546,641],"贺州":[641,616],"河池":[581,616],"来宾":[601,636],"崇左":[561,656],
+  "自贡":[501,521],"攀枝花":[451,546],"泸州":[521,531],"德阳":[491,481],"绵阳":[496,466],"广元":[506,436],"遂宁":[506,506],"内江":[501,516],"乐山":[491,516],"南充":[516,491],"眉山":[494,501],"宜宾":[501,536],"广安":[526,501],"达州":[531,461],"雅安":[481,506],"巴中":[516,451],"资阳":[499,506],"阿坝":[481,446],"甘孜":[431,481],"凉山":[451,561],
+  "六盘水":[521,576],"遵义":[546,551],"安顺":[536,576],"毕节":[526,556],"铜仁":[571,546],"黔西南":[526,591],"黔东南":[551,566],"黔南":[546,576],
+  "曲靖":[491,596],"玉溪":[476,616],"保山":[426,591],"昭通":[491,556],"丽江":[441,571],"普洱":[466,626],"临沧":[446,616],"楚雄":[466,601],"红河":[491,626],"文山":[506,626],"西双版纳":[466,646],"德宏":[421,591],"怒江":[426,576],"迪庆":[436,556],
+  "日喀则":[251,521],"昌都":[351,491],"林芝":[381,531],"山南":[321,531],"那曲":[281,461],"阿里":[121,431],
+  "铜川":[566,396],"宝鸡":[546,401],"咸阳":[571,406],"渭南":[586,406],"延安":[581,371],"汉中":[546,456],"榆林":[571,331],"安康":[581,461],"商洛":[601,431],
+  "嘉峪关":[386,301],"金昌":[456,331],"白银":[481,361],"天水":[521,401],"武威":[456,336],"张掖":[431,321],"平凉":[521,381],"酒泉":[401,301],"庆阳":[546,381],"定西":[496,381],"陇南":[506,421],"临夏":[486,396],"甘南":[491,411],
+  "海东":[463,371],"海北":[451,356],"黄南":[463,386],"海南州":[456,381],"果洛":[451,421],"玉树":[401,431],"海西":[351,381],
+  "石嘴山":[541,311],"吴忠":[536,336],"固原":[531,361],"中卫":[521,341],
+  "吐鲁番":[301,261],"哈密":[391,251],"昌吉":[236,206],"博尔塔拉":[171,181],"巴音郭楞":[231,291],"阿克苏":[121,291],"克孜勒苏":[61,321],"和田":[61,351],"伊犁":[131,181],"塔城":[151,141],
+  "儋州":[585,730],"东方":[570,735],"万宁":[615,735],"澳门":[652,668],"高雄":[762,615]
+}
+</script>
+
+<script>
+(function(){
+  var LINES = JSON.parse(document.getElementById('rail-lines').textContent);
+  var SPECIAL = JSON.parse(document.getElementById('rail-special').textContent);
+  var ALIAS = JSON.parse(document.getElementById('rail-alias').textContent);
+  var DIRECT = JSON.parse(document.getElementById('rail-direct').textContent);
+  var PROVINCE = JSON.parse(document.getElementById('rail-province').textContent);
+  var CITYPOS = JSON.parse(document.getElementById('rail-citypos').textContent);
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var lineByName = {};
+  var linesFromCity = {};
+  LINES.forEach(function(L){
+    lineByName[L.name] = L;
+    L.stops.forEach(function(c){
+      (linesFromCity[c] = linesFromCity[c] || []).push({name:L.name, type:L.type});
+    });
+  });
+
+  // 杭州跨线贯通直达城市 → 0 换乘虚拟线
+  Object.keys(DIRECT).forEach(function(city){
+    var d = DIRECT[city];
+    var vname = '贯通:' + city;
+    lineByName[vname] = {name:vname, type:d.t, stops:['杭州', city]};
+    (linesFromCity['杭州'] = linesFromCity['杭州'] || []).push({name:vname, type:d.t});
+    (linesFromCity[city] = linesFromCity[city] || []).push({name:vname, type:d.t});
+  });
+
+  var allCities = Object.keys(linesFromCity).concat(Object.keys(SPECIAL));
+  var HOT = ['北京','上海','广州','深圳','成都','重庆','西安','武汉','昆明','乌鲁木齐','拉萨','海口','三亚','澳门','香港','台北'];
+  var RECENT_KEY = 'rail-recent-v1';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var q = $('q'), dd = $('dropdown'), result = $('result'), hotEl = $('hot');
+
+  $('pillLines').textContent = '路网 ' + LINES.length + ' 条线路';
+  $('pillCities').textContent = allCities.length + ' 城可查';
+
+  var state = { kind:null, city:null, routes:[], filter:'all', direct:null, special:null, mapShown:false, hoverIdx:-1 };
+
+  /* ================= 工具函数 ================= */
+  function normalize(s){ return (s||'').replace(/\s+/g,''); }
+  function resolveCity(raw){
+    var s = normalize(raw);
+    if(!s) return null;
+    if(ALIAS[s]) s = ALIAS[s];
+    if(allCities.indexOf(s) >= 0) return s;
+    var t = s.replace(/(市|地区|自治州|特别行政区|自治区|盟)$/,'');
+    if(ALIAS[t]) t = ALIAS[t];
+    if(allCities.indexOf(t) >= 0) return t;
+    var hit = allCities.filter(function(c){ return c.indexOf(s) >= 0 || s.indexOf(c) >= 0; });
+    return hit.length ? hit[0] : null;
+  }
+  function getRecent(){
+    try{ return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); }catch(e){ return []; }
+  }
+  function pushRecent(city){
+    var r = getRecent().filter(function(x){ return x !== city; });
+    r.unshift(city); r = r.slice(0,6);
+    try{ localStorage.setItem(RECENT_KEY, JSON.stringify(r)); }catch(e){}
+    renderChips();
+  }
+
+  /* ================= 搜索与下拉 ================= */
+  function renderChips(){
+    hotEl.innerHTML = '';
+    var recent = getRecent();
+    recent.forEach(function(c){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip recent'; b.textContent = c;
+      b.addEventListener('click', function(){ doSearch(c); });
+      hotEl.appendChild(b);
+    });
+    HOT.forEach(function(c){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = c;
+      b.addEventListener('click', function(){ doSearch(c); });
+      hotEl.appendChild(b);
+    });
+  }
+  var ddActive = 0;
+  function ddList(){
+    var s = normalize(q.value);
+    if(!s) return [];
+    return allCities.filter(function(c){ return c.indexOf(s) >= 0; }).slice(0, 50);
+  }
+  function renderDD(list){
+    dd.innerHTML = '';
+    if(!list.length){
+      dd.innerHTML = '<div class="dd-empty">未找到匹配城市，换个写法试试（支持别名：乌市 / 格尔木 / 香格里拉…）</div>';
+      dd.classList.add('show'); return;
+    }
+    ddActive = Math.min(ddActive, list.length - 1);
+    list.forEach(function(c, i){
+      var d = document.createElement('div');
+      d.className = 'dd-item' + (i === ddActive ? ' active' : '');
+      d.setAttribute('role','option');
+      var prov = PROVINCE[c] || '';
+      var tag = '';
+      if(SPECIAL[c]) tag = '<span class="dd-tag dd-tag--special">特殊 · 需转乘</span>';
+      else if(ALIAS[c]) tag = '<span class="dd-tag dd-tag--alias">别名：' + esc(ALIAS[c]) + '</span>';
+      else if(!linesFromCity[c]) tag = '<span class="dd-tag dd-tag--none">无铁路 · 转公路</span>';
+      d.innerHTML = '<span class="dd-name">' + esc(c) + '</span>' + tag + '<span class="dd-prov">' + esc(prov) + '</span>';
+      d.addEventListener('mousedown', function(e){ e.preventDefault(); doSearch(c); });
+      d.addEventListener('mousemove', function(){ if(ddActive !== i){ ddActive = i; markDD(); } });
+      dd.appendChild(d);
+    });
+    dd.classList.add('show');
+  }
+  function markDD(){
+    var items = dd.querySelectorAll('.dd-item');
+    for(var i=0;i<items.length;i++) items[i].classList.toggle('active', i === ddActive);
+  }
+  function closeDD(){ dd.classList.remove('show'); }
+  q.addEventListener('input', function(){
+    var list = ddList();
+    ddActive = 0;
+    if(list.length) renderDD(list); else closeDD();
+  });
+  q.addEventListener('focus', function(){
+    var list = ddList();
+    if(list.length){ ddActive = 0; renderDD(list); }
+  });
+  q.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ closeDD(); return; }
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      var list = ddList();
+      if(list.length){ doSearch(list[ddActive]); closeDD(); }
+      else if(q.value.trim()){ doSearch(q.value.trim()); closeDD(); }
+      return;
+    }
+    if(!dd.classList.contains('show')) return;
+    var list = ddList();
+    if(e.key === 'ArrowDown'){ e.preventDefault(); ddActive = (ddActive + 1) % list.length; markDD(); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); ddActive = (ddActive - 1 + list.length) % list.length; markDD(); }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.search-box')) closeDD();
+  });
+
+  /* ================= 核心算法：线路层 BFS ================= */
+  function findRoutes(from, to){
+    var fromLines = linesFromCity[from] || [];
+    var toLines = linesFromCity[to] || [];
+    if(!fromLines.length || !toLines.length) return null;
+
+    var routes = [];
+    fromLines.filter(function(f){
+      return toLines.some(function(t){ return t.name === f.name; });
+    }).forEach(function(d){
+      routes.push({ transfers:0, segs:[{line:d.name, type:d.type, from:from, to:to}], vias:[] });
+    });
+
+    // visited 记录每条线路的最少换乘数；允许“比最少多 1 次”的次优路径入队，
+    // 以保留真实存在的绕行备选（如经另一枢纽换乘），同时剪掉绕圈的垃圾路径。
+    var visited = {};
+    fromLines.forEach(function(f){ visited[f.name] = 0; });
+    var queue = fromLines.map(function(f){ return {name:f.name, transfers:0, parent:null, via:null}; });
+    var head = 0;
+    while(head < queue.length){
+      var cur = queue[head++];
+      if(cur.transfers >= 3) continue;
+      var line = lineByName[cur.name];
+      for(var i=0;i<line.stops.length;i++){
+        var city = line.stops[i];
+        var nls = linesFromCity[city] || [];
+        for(var j=0;j<nls.length;j++){
+          var nl = nls[j];
+          var nt = cur.transfers + 1;
+          if(visited[nl.name] !== undefined && nt > visited[nl.name] + 1) continue;
+          visited[nl.name] = (visited[nl.name] === undefined) ? nt : Math.min(visited[nl.name], nt);
+          queue.push({name:nl.name, transfers:nt, parent:cur, via:city});
+        }
+      }
+    }
+
+    var toLineNames = toLines.map(function(t){ return t.name; });
+    queue.filter(function(n){ return toLineNames.indexOf(n.name) >= 0 && n.transfers > 0; }).forEach(function(r){
+      // 沿 parent 链回溯出完整线路序列与换乘城市
+      var chain = [], viaChain = [], node = r;
+      while(node){
+        chain.unshift(node.name);
+        if(node.via) viaChain.unshift(node.via);
+        node = node.parent;
+      }
+      var segs = [], vias = [];
+      var prevCity = from;
+      for(var k=0;k<chain.length;k++){
+        var endCity = (k < chain.length-1) ? viaChain[k] : to;
+        var L = lineByName[chain[k]];
+        segs.push({line:chain[k], type:L.type, from:prevCity, to:endCity});
+        prevCity = endCity;
+        if(k < chain.length-1) vias.push(endCity);
+      }
+      var degenerate = segs.some(function(s){ return s.from === s.to; });
+      var sameAdj = false;
+      for(var m=1;m<segs.length;m++){ if(segs[m].line === segs[m-1].line){ sameAdj = true; break; } }
+      if(!degenerate && !sameAdj) routes.push({ transfers:r.transfers, segs:segs, vias:vias });
+    });
+
+    var rank = {G:0,D:1,K:2};
+    routes.sort(function(a,b){
+      if(a.transfers !== b.transfers) return a.transfers - b.transfers;
+      var sa = Math.max.apply(null, a.segs.map(function(s){ return rank[s.type]; }));
+      var sb = Math.max.apply(null, b.segs.map(function(s){ return rank[s.type]; }));
+      return sa - sb;
+    });
+    var seen = {};
+    var out = [];
+    routes.forEach(function(r){
+      var key = r.segs.map(function(s){ return s.line; }).join('>');
+      if(!seen[key]){ seen[key] = 1; out.push(r); }
+    });
+    return out.slice(0, 6);
+  }
+
+  function lineLabel(seg){
+    return seg.line.indexOf('贯通:') === 0 ? DIRECT[seg.line.slice(3)].r : seg.line;
+  }
+  function midStopsOf(seg){
+    var L = lineByName[seg.line];
+    var a = L.stops.indexOf(seg.from);
+    var b = L.stops.indexOf(seg.to);
+    if(a<0 || b<0) return [];
+    return a<=b ? L.stops.slice(a+1,b) : L.stops.slice(b+1,a).reverse();
+  }
+  function isFerry(line){ return line.indexOf('轮渡') >= 0; }
+
+  /* ================= 筛选 ================= */
+  var FILTERS = [
+    {id:'all', label:'全部方案'},
+    {id:'direct-only', label:'仅直达'},
+    {id:'least', label:'最少换乘'},
+    {id:'gd', label:'仅高铁动车'}
+  ];
+  function filterRoutes(){
+    var rs = state.routes.slice();
+    if(state.filter === 'direct-only') rs = rs.filter(function(r){ return r.transfers === 0; });
+    if(state.filter === 'gd') rs = rs.filter(function(r){ return r.segs.every(function(s){ return s.type === 'G' || s.type === 'D'; }); });
+    if(state.filter === 'least') rs = rs.slice().sort(function(a,b){
+      if(a.transfers !== b.transfers) return a.transfers - b.transfers;
+      return a.segs.length - b.segs.length;
+    });
+    return rs;
+  }
+
+  /* ================= 地图 ================= */
+  var LAND_PATH = "M790,11 L820,35 L860,55 L900,75 L940,92 L972,105 L987,118 L970,145 L944,185 L930,215 L922,244 L905,258 L888,263 L868,272 L848,282 L822,298 L800,295 L784,294 L778,305 L778,317 L762,325 L745,320 L728,315 L720,325 L724,338 L734,350 L748,356 L758,362 L772,350 L786,349 L782,365 L770,378 L758,376 L750,383 L744,393 L736,400 L742,410 L750,415 L740,428 L748,442 L762,448 L774,458 L781,475 L778,490 L774,500 L768,520 L767,540 L766,550 L756,572 L748,584 L742,598 L732,608 L726,616 L720,622 L712,634 L700,644 L690,650 L676,653 L664,656 L650,660 L636,660 L624,664 L612,670 L600,676 L590,682 L576,688 L566,685 L556,680 L544,670 L536,655 L528,648 L516,648 L500,655 L491,662 L480,660 L470,665 L459,689 L452,682 L442,668 L432,664 L422,668 L416,672 L408,660 L400,644 L392,630 L388,612 L392,596 L400,575 L408,557 L400,548 L390,536 L372,540 L352,545 L330,550 L310,554 L296,558 L280,560 L268,556 L264,548 L250,548 L236,550 L222,548 L206,542 L188,534 L170,530 L152,528 L140,522 L132,512 L130,494 L126,484 L120,472 L112,460 L106,446 L102,432 L104,420 L102,410 L98,398 L92,386 L82,378 L70,372 L56,368 L44,362 L34,352 L26,346 L24,336 L22,328 L16,314 L14,300 L24,294 L32,294 L40,280 L55,268 L75,264 L95,262 L115,258 L125,245 L122,228 L112,215 L118,206 L135,198 L148,188 L152,180 L148,165 L140,152 L146,134 L158,122 L178,110 L203,103 L237,101 L270,105 L300,118 L330,138 L352,152 L362,172 L366,191 L395,205 L430,215 L470,232 L500,244 L512,256 L540,258 L570,240 L595,215 L608,193 L632,179 L656,151 L672,141 L688,130 L700,110 L710,92 L730,55 L752,21 L775,12 Z";
+  var HAINAN_PATH = "M610,695 C622,690 630,700 626,712 C622,745 610,762 596,760 C584,758 578,745 580,732 C582,712 596,700 610,695 Z";
+  var TAIWAN_PATH = "M754,530 C762,522 770,530 768,545 C766,585 760,615 752,630 C748,600 746,560 754,530 Z";
+  var mapWrap = null, mapSvg = null, cityLayer = null, routeLayer = null, labelLayer = null, mapTip = null;
+
+  function buildMap(){
+    mapWrap = document.createElement('div');
+    mapWrap.className = 'map-wrap';
+    mapWrap.innerHTML =
+      '<div class="map-box" id="mapBox">' +
+        '<span class="map-cap">线路示意 · 站点位置为示意图</span>' +
+        '<svg id="mapSvg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" aria-label="中国铁路线路示意图"></svg>' +
+        '<div class="map-tip" id="mapTip"></div>' +
+      '</div>' +
+      '<div class="map-legend">' +
+        '<span class="lg"><span class="bar" style="background:var(--g)"></span>高铁段</span>' +
+        '<span class="lg"><span class="bar" style="background:var(--d)"></span>动车段</span>' +
+        '<span class="lg"><span class="bar" style="background:var(--k)"></span>普速段</span>' +
+        '<span class="lg"><span class="dash"></span>轮渡</span>' +
+        '<span class="lg"><span class="sq"></span>出发</span>' +
+        '<span class="lg"><span class="ring"></span>到达</span>' +
+        '<span class="lg"><span class="dot"></span>换乘点</span>' +
+        '<span class="lg" style="margin-left:auto">hover 方案卡高亮对应路线</span>' +
+      '</div>';
+    mapSvg = mapWrap.querySelector('#mapSvg');
+    mapTip = mapWrap.querySelector('#mapTip');
+    var g = document.createElementNS(SVG_NS,'g');
+    g.innerHTML = '<path class="land" d="' + LAND_PATH + '"/><path class="land" d="' + HAINAN_PATH + '"/><path class="land" d="' + TAIWAN_PATH + '"/>';
+    mapSvg.appendChild(g);
+    cityLayer = document.createElementNS(SVG_NS,'g');
+    routeLayer = document.createElementNS(SVG_NS,'g');
+    labelLayer = document.createElementNS(SVG_NS,'g');
+    mapSvg.appendChild(routeLayer);
+    mapSvg.appendChild(cityLayer);
+    mapSvg.appendChild(labelLayer);
+    // 基础城市点
+    Object.keys(CITYPOS).forEach(function(name){
+      var p = CITYPOS[name];
+      var c = document.createElementNS(SVG_NS,'circle');
+      c.setAttribute('class','cdot');
+      c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r',2.6);
+      c.setAttribute('fill','var(--mute)'); c.setAttribute('opacity',.7);
+      c.setAttribute('data-name',name);
+      c.addEventListener('mouseenter', function(e){ showTip(name, e); });
+      c.addEventListener('mousemove', function(e){ moveTip(e); });
+      c.addEventListener('mouseleave', function(){ mapTip.classList.remove('show'); });
+      c.addEventListener('click', function(){ if(name !== '杭州') doSearch(name); });
+      cityLayer.appendChild(c);
+    });
+  }
+  function showTip(name, e){
+    var role = '';
+    if(state.kind === 'routes'){
+      var idx = state.mapRouteIdx >= 0 ? state.mapRouteIdx : 0;
+      var r = state.routes[idx];
+      if(r){
+        if(name === '杭州') role = '出发';
+        else if(name === state.city) role = '到达';
+        else if(r.vias.indexOf(name) >= 0) role = '换乘点';
+        else role = PROVINCE[name] ? '途经 ' + PROVINCE[name] : '';
+      }
+    } else if(name === state.city){ role = '目的地'; }
+    mapTip.innerHTML = '<b>' + esc(name) + '</b><span class="role">' + esc(role || (PROVINCE[name] || '')) + '</span>';
+    mapTip.classList.add('show');
+    moveTip(e);
+  }
+  function moveTip(e){
+    var box = mapWrap.querySelector('.map-box');
+    var r = box.getBoundingClientRect();
+    var x = e.clientX - r.left + 14, y = e.clientY - r.top - 34;
+    x = Math.min(x, r.width - 130); y = Math.max(y, 6);
+    mapTip.style.left = x + 'px'; mapTip.style.top = y + 'px';
+  }
+  function smoothPath(pts){
+    if(pts.length < 2) return '';
+    var d = 'M' + pts[0][0] + ',' + pts[0][1];
+    for(var i=1;i<pts.length;i++){
+      var p0 = pts[i-1], p1 = pts[i];
+      var mx = Math.round((p0[0]+p1[0])/2);
+      d += ' C' + mx + ',' + p0[1] + ' ' + mx + ',' + p1[1] + ' ' + p1[0] + ',' + p1[1];
+    }
+    return d;
+  }
+  function drawMapRoute(r, highlight){
+    routeLayer.innerHTML = '';
+    labelLayer.innerHTML = '';
+    routeLayer.classList.toggle('draw-once', !highlight);
+    var marks = [];
+    r.segs.forEach(function(seg, si){
+      var pts = [];
+      var add = function(c){ var p = CITYPOS[c]; if(p) pts.push(p); };
+      add(seg.from);
+      midStopsOf(seg).forEach(add);
+      add(seg.to);
+      if(pts.length < 2) return;
+      var path = document.createElementNS(SVG_NS,'path');
+      path.setAttribute('d', smoothPath(pts));
+      if(seg.line.indexOf('轮渡') >= 0){
+        path.setAttribute('class','ferry-path');
+      } else {
+        var under = document.createElementNS(SVG_NS,'path');
+        under.setAttribute('d', smoothPath(pts));
+        under.setAttribute('class','seg-underlay t-' + seg.type);
+        routeLayer.appendChild(under);
+        path.setAttribute('class','seg-path t-' + seg.type + (highlight ? ' hover' : ''));
+      }
+      // 按真实路径长度做绘制动画（hover 重画时不重播）
+      if(path.getTotalLength){
+        var plen = path.getTotalLength();
+        if(highlight){
+          path.style.strokeDasharray = 'none';
+          path.style.strokeDashoffset = '0';
+        } else {
+          path.style.strokeDasharray = plen + 'px';
+          path.style.strokeDashoffset = plen + 'px';
+        }
+      }
+      routeLayer.appendChild(path);
+      // 标记点
+      if(si === 0) marks.push({city:seg.from, role:'from'});
+      midStopsOf(seg).forEach(function(c){ if(CITYPOS[c]) marks.push({city:c, role:'mid'}); });
+      if(si < r.segs.length-1) marks.push({city:seg.to, role:'xfer'});
+      else marks.push({city:seg.to, role:'to'});
+    });
+    // 去重标记
+    var seenM = {};
+    marks.forEach(function(m){
+      if(seenM[m.city] && m.role !== 'xfer') return;
+      seenM[m.city] = 1;
+      var p = CITYPOS[m.city];
+      if(!p) return;
+      var el;
+      if(m.role === 'xfer'){
+        el = document.createElementNS(SVG_NS,'circle');
+        el.setAttribute('class','xfer-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',5.5);
+      } else if(m.role === 'from'){
+        el = document.createElementNS(SVG_NS,'circle');
+        el.setAttribute('class','from-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',6);
+      } else if(m.role === 'to'){
+        el = document.createElementNS(SVG_NS,'circle');
+        el.setAttribute('class','to-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',5);
+      } else {
+        el = document.createElementNS(SVG_NS,'circle');
+        el.setAttribute('class','mid-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',3.4);
+      }
+      routeLayer.appendChild(el);
+      // 标签：起终点 + 换乘点
+      if(m.role === 'from' || m.role === 'to' || m.role === 'xfer'){
+        var t = document.createElementNS(SVG_NS,'text');
+        t.setAttribute('class','rlabel');
+        t.setAttribute('x',p[0]); t.setAttribute('y', m.role === 'to' ? p[1] + 22 : p[1] - 10);
+        t.setAttribute('text-anchor','middle');
+        t.textContent = m.city;
+        labelLayer.appendChild(t);
+      }
+    });
+  }
+  function mapCanRender(r){
+    var ok = CITYPOS['杭州'];
+    if(!ok) return false;
+    if(!CITYPOS[state.city]) return false;
+    if(!r) return true;
+    for(var i=0;i<r.vias.length;i++) if(!CITYPOS[r.vias[i]]) return false;
+    return true;
+  }
+  function defaultMapRoute(){
+    if(state.kind === 'direct' && state.direct){
+      return { transfers:0, segs:[{line:'贯通:' + state.city, type:state.direct.t, from:'杭州', to:state.city}], vias:[] };
+    }
+    return state.routes[0];
+  }
+
+  /* ================= 复制 ================= */
+  function routeText(r, city){
+    if(r.transfers === 0){
+      return '杭州 → ' + city + '｜直达（' + lineLabel(r.segs[0]) + '，' + r.segs[0].type + '字头），无需下车换乘';
+    }
+    var path = [r.segs[0].from];
+    r.vias.forEach(function(v){ path.push(v + '【换乘】'); });
+    path.push(city);
+    return path.join(' → ') + '｜经 ' + r.segs.map(function(x){ return lineLabel(x) + '(' + x.type + ')'; }).join('、') + '，换乘 ' + r.transfers + ' 次';
+  }
+  function copyText(t, btn){
+    var done = function(){
+      btn.classList.add('done');
+      btn.querySelector('span').textContent = '已复制';
+      setTimeout(function(){ btn.classList.remove('done'); btn.querySelector('span').textContent = '复制路线'; }, 1600);
+    };
+    var fallback = function(){
+      var ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); done(); }catch(e){}
+      document.body.removeChild(ta);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(done, fallback);
+    } else fallback();
+  }
+
+  /* ================= 渲染 ================= */
+  function doSearch(raw){
+    var city = resolveCity(raw);
+    result.innerHTML = '';
+    if(!city){
+      result.innerHTML = '<div class="empty-box">未识别该城市。请检查输入，或换个写法（如「乌鲁木齐」「香港」「海西」）。</div>';
+      return;
+    }
+    q.value = city;
+    closeDD();
+    pushRecent(city);
+    state.city = city;
+    state.filter = 'all';
+    state.hoverIdx = -1;
+
+    if(DIRECT[city]){
+      state.kind = 'direct';
+      state.direct = DIRECT[city];
+      state.routes = findRoutes('杭州', city) || [];
+      state.routes = state.routes.filter(function(r){ return r.transfers > 0; });
+    } else if(SPECIAL[city]){
+      state.kind = 'special';
+      state.special = SPECIAL[city];
+      state.routes = [];
+    } else {
+      state.kind = 'routes';
+      state.routes = findRoutes('杭州', city) || [];
+    }
+    renderAll();
+  }
+
+  function renderAll(){
+    result.innerHTML = '';
+    if(state.kind === 'routes' || (state.kind === 'direct' && state.routes.length)){
+      renderStats();
+      renderFilters();
+      if(state.kind === 'direct') renderDirectCard();
+      if(state.kind === 'routes' && mapCanRender(state.routes[0])) renderMapBlock();
+      else if(state.kind === 'direct' && mapCanRender(null)) renderMapBlockForDirect();
+      renderCards();
+    } else if(state.kind === 'direct'){
+      renderDirectCard();
+      renderMapBlockForDirect();
+    } else if(state.kind === 'special'){
+      renderSpecialCard();
+      renderMapBlockForSpecial();
+    } else {
+      result.innerHTML = '<div class="empty-box">' + esc(state.city) + ' 暂无法规划铁路路线，请以 12306 实时查询为准。</div>';
+    }
+  }
+
+  function renderStats(){
+    var rs = state.routes;
+    var dist = {0:0,1:0,2:0,3:0};
+    rs.forEach(function(r){ dist[r.transfers] = (dist[r.transfers]||0) + 1; });
+    var t = rs[0];
+    var bestLabel = t ? (t.transfers === 0 ? '直达 · 无需换乘' : t.transfers + ' 次换乘 · 全程 ' + (t.segs.every(function(s){return s.type!=='K';}) ? '高速' : '含普速')) : '';
+
+    var card = document.createElement('div');
+    card.className = 'stats-card';
+    card.innerHTML =
+      '<div class="tiles">' +
+        '<div class="tile" style="--tbar:var(--k)"><b>' + dist[0] + '</b><i>直达方案</i></div>' +
+        '<div class="tile' + (dist[1] ? '' : ' zero') + '" style="--tbar:var(--accent)"><b>' + dist[1] + '</b><i>1 次中转</i></div>' +
+        '<div class="tile' + (dist[2] ? '' : ' zero') + '" style="--tbar:var(--d)"><b>' + dist[2] + '</b><i>2 次中转</i></div>' +
+        '<div class="tile' + (dist[3] ? '' : ' zero') + '" style="--tbar:var(--transfer)"><b>' + dist[3] + '</b><i>3 次中转</i></div>' +
+      '</div>' +
+      '<div class="dist">' +
+        '<div class="dist-head">换乘分布<i>共 ' + rs.length + ' 个可行方案</i></div>' +
+        '<div class="dist-rows">' +
+          [0,1,2,3].map(function(n){
+            var w = rs.length ? Math.round(dist[n]/rs.length*100) : 0;
+            var colors = ['var(--k)','var(--accent)','var(--d)','var(--transfer)'];
+            return '<div class="drow"><span class="dl">' + n + ' 次换乘</span><span class="dt"><i style="width:' + w + '%;background:' + colors[n] + '"></i></span><b>' + dist[n] + '</b></div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div class="stats-foot"><span>最优方案</span><span class="chipf">' + esc(bestLabel) + '</span><span class="src">' + esc(state.city) + ' · 从杭州出发</span></div>';
+    result.appendChild(card);
+  }
+
+  function renderFilters(){
+    var bar = document.createElement('div');
+    bar.className = 'filter-bar';
+    bar.setAttribute('role','group');
+    bar.setAttribute('aria-label','方案筛选');
+    FILTERS.forEach(function(f){
+      var shown = state.routes.length;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'seg-btn';
+      b.setAttribute('aria-pressed', state.filter === f.id ? 'true' : 'false');
+      b.innerHTML = esc(f.label) + (f.id === 'all' ? '<span class="cnt">' + shown + '</span>' : '');
+      b.addEventListener('click', function(){
+        state.filter = f.id;
+        renderAll();
+      });
+      bar.appendChild(b);
+    });
+    result.appendChild(bar);
+  }
+
+  function renderMapBlock(){
+    buildMap();
+    state.mapRouteIdx = 0;
+    drawMapRoute(state.routes[0], false);
+    result.appendChild(mapWrap);
+  }
+  function renderMapBlockForDirect(){
+    if(!mapCanRender(null)) return;
+    buildMap();
+    var r = { transfers:0, segs:[{line:'贯通:' + state.city, type:state.direct.t, from:'杭州', to:state.city}], vias:[] };
+    drawMapRoute(r, false);
+    result.appendChild(mapWrap);
+  }
+  function renderMapBlockForSpecial(){
+    if(!CITYPOS[state.city]) return;
+    buildMap();
+    var r = { transfers:0, segs:[{line:'特殊方向', type:'K', from:'杭州', to:state.city}], vias:[] };
+    routeLayer.innerHTML = '';
+    var p0 = CITYPOS['杭州'], p1 = CITYPOS[state.city];
+    var path = document.createElementNS(SVG_NS,'path');
+    path.setAttribute('d', smoothPath([p0, p1]));
+    path.setAttribute('class','ferry-path');
+    routeLayer.appendChild(path);
+    var dot = document.createElementNS(SVG_NS,'circle');
+    dot.setAttribute('class','to-dot'); dot.setAttribute('cx',p1[0]); dot.setAttribute('cy',p1[1]); dot.setAttribute('r',5);
+    routeLayer.appendChild(dot);
+    var t = document.createElementNS(SVG_NS,'text');
+    t.setAttribute('class','rlabel'); t.setAttribute('x',p1[0]); t.setAttribute('y',p1[1]+22); t.setAttribute('text-anchor','middle');
+    t.textContent = state.city;
+    labelLayer.appendChild(t);
+    result.appendChild(mapWrap);
+  }
+
+  function renderDirectCard(){
+    var dr = state.direct;
+    var card = document.createElement('section');
+    card.className = 'card anim-in';
+    card.innerHTML =
+      '<div class="card-head">' +
+        '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
+        '<div class="card-badges">' +
+          '<span class="badge badge--solid ' + dr.t.toLowerCase() + '">' + dr.t + ' ' + (dr.t==='G'?'高铁直达':(dr.t==='D'?'动车直达':'普速直达')) + '</span>' +
+          '<span class="badge badge--ok">贯通车次 · 无需下车换乘</span>' +
+        '</div>' +
+      '</div>' +
+      '<ul class="schem" role="list">' +
+        '<li class="node"><span class="node-dot node-dot--origin"></span><span class="node-name">杭州</span><span class="node-role">出发</span></li>' +
+        '<li class="link"><span class="line-tag"><span class="linetype ' + dr.t + '">' + dr.t + '</span><span class="lname">' + esc(dr.r) + '</span></span><span class="track-box"><span class="track track--' + dr.t.toLowerCase() + '"></span></span></li>' +
+        '<li class="node"><span class="node-dot node-dot--dest"></span><span class="node-name">' + esc(state.city) + '</span><span class="node-role">到达</span></li>' +
+      '</ul>' +
+      '<div class="panel">' +
+        '<div class="stats">' +
+          '<div class="stat"><div class="stat-v">0 次</div><div class="stat-l">换乘次数</div></div>' +
+          '<div class="stat"><div class="stat-v"><span class="t-' + dr.t.toLowerCase() + '">' + dr.t + '</span> 字头</div><div class="stat-l">全程类型</div></div>' +
+          '<div class="stat"><div class="stat-v">贯通</div><div class="stat-l">运行方式</div></div>' +
+          '<div class="stat"><div class="stat-v">无</div><div class="stat-l">换乘站</div></div>' +
+        '</div>' +
+        '<div class="callout callout--ok">✓ <span><b>贯通车次，无需下车换乘</b> — 同一车次沿 ' + esc(dr.r) + ' 直达' + esc(state.city) + '</span></div>' +
+        '<p class="ref-route">此为宏观走线，具体车次是否停靠、每日班次，以 12306 实时查询为准。</p>' +
+        '<div class="actions">' +
+          '<button type="button" class="btn-copy" data-text="' + esc('杭州 → ' + state.city + '｜直达（' + dr.r + '），无需下车换乘') + '"><span>复制路线</span></button>' +
+          '<button type="button" class="btn12306">去 12306 查实时班次 →</button>' +
+        '</div>' +
+      '</div>';
+    card.querySelector('.btn12306').addEventListener('click', function(){ window.open('https://kyfw.12306.cn/otn/leftTicket/init','_blank'); });
+    card.querySelector('.btn-copy').addEventListener('click', function(){ copyText(this.getAttribute('data-text'), this); });
+    result.appendChild(card);
+  }
+
+  function renderSpecialCard(){
+    var sp = state.special;
+    var card = document.createElement('section');
+    card.className = 'card card--special anim-in';
+    card.innerHTML =
+      '<div class="card-head">' +
+        '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
+        '<div class="card-badges"><span class="badge badge--sp">特殊目的地</span></div>' +
+      '</div>' +
+      '<div class="callout callout--warn">⚠ <span>' + esc(sp.note) + '</span></div>' +
+      '<div class="panel"><p class="ref-route">参考路线：<b>' + esc(sp.suggest) + '</b></p>' +
+        '<div class="actions">' +
+          '<button type="button" class="btn-copy" data-text="' + esc(sp.suggest) + '"><span>复制路线</span></button>' +
+          '<button type="button" class="btn12306">去 12306 查实时班次 →</button>' +
+        '</div>' +
+      '</div>';
+    card.querySelector('.btn12306').addEventListener('click', function(){ window.open('https://kyfw.12306.cn/otn/leftTicket/init','_blank'); });
+    card.querySelector('.btn-copy').addEventListener('click', function(){ copyText(this.getAttribute('data-text'), this); });
+    result.appendChild(card);
+  }
+
+  function renderCards(){
+    var rs = filterRoutes();
+    if(!rs.length){
+      result.appendChild((function(){
+        var d = document.createElement('div');
+        d.className = 'empty-box';
+        d.textContent = '当前筛选条件下无方案，试试其他筛选。';
+        return d;
+      })());
+      return;
+    }
+    var sec = document.createElement('p');
+    sec.className = 'sec-label';
+    sec.textContent = '可行方案 · 按推荐排序';
+    result.appendChild(sec);
+
+    rs.forEach(function(r, idx){
+      var card = document.createElement('section');
+      card.className = 'card anim-in';
+      card.style.animationDelay = (idx * 60) + 'ms';
+      card.setAttribute('data-idx', idx);
+
+      var headLabel;
+      if(r.transfers === 0) headLabel = '全程无需换乘';
+      else headLabel = '在 ' + r.vias.join('、') + ' 换乘';
+      var allTypes = r.segs.map(function(s){ return s.type; });
+      var typeBadge = '';
+      if(allTypes.indexOf('K') < 0 && allTypes.indexOf('D') < 0) typeBadge = '<span class="badge badge--plain">全程 G 字头</span>';
+      else if(allTypes.indexOf('K') < 0) typeBadge = '<span class="badge badge--plain">全程高速</span>';
+      else typeBadge = '<span class="badge badge--plain">含普速段</span>';
+
+      var head = document.createElement('div');
+      head.className = 'card-head';
+      head.innerHTML =
+        '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
+        '<div class="card-badges">' +
+          (r.transfers === 0
+            ? '<span class="badge badge--solid ' + r.segs[0].type.toLowerCase() + '">' + r.segs[0].type + ' 直达</span>'
+            : '<span class="badge badge--tf">' + r.transfers + ' 次中转</span>') +
+          typeBadge +
+        '</div>';
+
+      // 轨道示意图
+      var schem = document.createElement('ul');
+      schem.className = 'schem';
+      schem.setAttribute('role','list');
+      var parts = [];
+      r.segs.forEach(function(seg, si){
+        if(si === 0){
+          parts.push('<li class="node"><span class="node-dot node-dot--origin"></span><span class="node-name">杭州</span><span class="node-role">出发</span></li>');
+        }
+        var lt = seg.line.indexOf('轮渡') >= 0 ? 'F' : seg.type;
+        var lc = lt === 'F' ? 'ferry' : lt.toLowerCase();
+        parts.push(
+          '<li class="link"><span class="line-tag"><span class="linetype ' + lt + '">' + lt + '</span><span class="lname">' + esc(lineLabel(seg)) + '</span></span>' +
+          '<span class="track-box"><span class="track track--' + lc + '"></span></span></li>'
+        );
+        if(si < r.segs.length-1){
+          var prevT = seg.line.indexOf('轮渡') >= 0 ? 'F' : seg.type;
+          var nextSeg = r.segs[si+1];
+          var nextT = nextSeg.line.indexOf('轮渡') >= 0 ? 'F' : nextSeg.type;
+          parts.push(
+            '<li class="node"><span class="node-dot node-dot--transfer" style="--t-prev:var(--' + prevT.toLowerCase() + ');--t-next:var(--' + nextT.toLowerCase() + ')"></span>' +
+            '<span class="node-name">' + esc(seg.to) + '</span><span class="node-role node-role--transfer">换乘</span><span class="node-hint">' + (nextT === 'K' ? '班次少 · 预留充足时间' : '建议预留 30 分钟') + '</span></li>'
+          );
+        } else {
+          parts.push('<li class="node"><span class="node-dot node-dot--dest"></span><span class="node-name">' + esc(seg.to) + '</span><span class="node-role">到达</span></li>');
+        }
+      });
+      schem.innerHTML = parts.join('');
+
+      // 信息面板
+      var panel = document.createElement('div');
+      panel.className = 'panel';
+      var segCount = r.segs.length;
+      var ferryCount = r.segs.filter(function(s){ return s.line.indexOf('轮渡') >= 0; }).length;
+      var panelHtml =
+        '<div class="stats">' +
+          '<div class="stat"><div class="stat-v">' + r.transfers + ' 次</div><div class="stat-l">换乘次数</div></div>' +
+          '<div class="stat"><div class="stat-v">' + allTypes.filter(function(t,i,a){ return a.indexOf(t)===i; }).map(function(t){ return '<span class="t-' + t.toLowerCase() + '">' + t + '</span>'; }).join(' ') + '</div><div class="stat-l">车次类型</div></div>' +
+          '<div class="stat"><div class="stat-v">' + segCount + ' 段</div><div class="stat-l">行程分段</div></div>' +
+          '<div class="stat"><div class="stat-v">' + (ferryCount ? ferryCount + ' 段' : '无') + '</div><div class="stat-l">跨海轮渡</div></div>' +
+        '</div>';
+      if(r.transfers > 0){
+        var hasK = allTypes.indexOf('K') >= 0;
+        panelHtml += '<div class="callout callout--transfer">⏱ <span><b>换乘提示</b> — 每次换乘建议预留 30 分钟以上' + (hasK ? '；普速（K 字头）班次少，建议预留充足时间并提前购票' : '') + '</span></div>';
+      } else {
+        panelHtml += '<div class="callout callout--ok">✓ <span><b>直达</b> — 沿 ' + esc(lineLabel(r.segs[0])) + ' 直达' + esc(state.city) + '，无需下车换乘</span></div>';
+      }
+      // 停靠站（超过 12 站折叠，可展开）
+      var allMid = [];
+      r.segs.forEach(function(seg){ allMid = allMid.concat(midStopsOf(seg)); });
+      if(allMid.length){
+        var folded = allMid.length > 12;
+        var visible = folded ? allMid.slice(0, 12) : allMid;
+        panelHtml += '<div class="stops"><div class="stops-label">沿线主要停靠（' + allMid.length + ' 站）</div><div class="stops-grid">' +
+          visible.map(function(c){ return '<span class="stop">' + esc(c) + '</span>'; }).join('') + '</div>';
+        if(folded){
+          panelHtml += '<button type="button" class="btn-expand" data-n="' + allMid.length + '" data-hidden="' + esc(allMid.slice(12).join('|')) + '">展开全部 ' + allMid.length + ' 站 ▾</button></div>';
+        } else {
+          panelHtml += '</div>';
+        }
+      }
+      // 换乘明细
+      panelHtml += '<div class="t-list">' + r.segs.map(function(seg, si){
+        var lt = seg.line.indexOf('轮渡') >= 0 ? 'F' : seg.type;
+        return '<div class="t-row"><span class="t-idx">' + (si+1) + '</span><span class="linetype ' + lt + '">' + lt + '</span><span class="lname">' + esc(lineLabel(seg)) + '</span><span>' + esc(seg.from) + ' → ' + esc(seg.to) + '</span></div>';
+      }).join('') + '</div>';
+      panelHtml += '<p class="ref-route">宏观走线参考，具体车次/时刻以 12306 实时查询为准。</p>';
+      panelHtml += '<div class="actions">' +
+        '<button type="button" class="btn-copy" data-text="' + esc(routeText(r, state.city)) + '"><span>复制路线</span></button>' +
+        '<button type="button" class="btn12306">去 12306 查实时班次 →</button>' +
+      '</div>';
+      panel.innerHTML = panelHtml;
+
+      card.appendChild(head);
+      card.appendChild(schem);
+      card.appendChild(panel);
+      card.querySelector('.btn12306').addEventListener('click', function(){ window.open('https://kyfw.12306.cn/otn/leftTicket/init','_blank'); });
+      card.querySelector('.btn-copy').addEventListener('click', function(){ copyText(this.getAttribute('data-text'), this); });
+      var expandBtn = card.querySelector('.btn-expand');
+      if(expandBtn){
+        expandBtn.addEventListener('click', function(){
+          var hidden = expandBtn.getAttribute('data-hidden').split('|');
+          hidden.forEach(function(c){
+            var s = document.createElement('span');
+            s.className = 'stop';
+            s.textContent = c;
+            expandBtn.parentNode.querySelector('.stops-grid').appendChild(s);
+          });
+          expandBtn.remove();
+        });
+      }
+
+      // 地图联动
+      if(mapWrap){
+        card.addEventListener('mouseenter', function(){
+          state.mapRouteIdx = idx;
+          drawMapRoute(r, true);
+        });
+        card.addEventListener('mouseleave', function(){
+          if(state.mapRouteIdx === idx){
+            state.mapRouteIdx = 0;
+            drawMapRoute(defaultMapRoute(), false);
+          }
+        });
+      }
+      result.appendChild(card);
+    });
+  }
+
+  /* ================= 省份浏览 ================= */
+  var provGrid = $('provGrid');
+  var byProv = {};
+  allCities.forEach(function(c){
+    var p = PROVINCE[c] || '其他';
+    (byProv[p] = byProv[p] || []).push(c);
+  });
+  Object.keys(byProv).sort(function(a,b){
+    return (a==='其他'?1:0)-(b==='其他'?1:0) || a.localeCompare(b,'zh');
+  }).forEach(function(p){
+    var box = document.createElement('div');
+    box.className = 'p';
+    box.innerHTML = '<b>' + p + '</b><span>' + byProv[p].sort(function(a,b){return a.localeCompare(b,'zh');}).join('、') + '</span>';
+    provGrid.appendChild(box);
+  });
+
+  renderChips();
+})();
+</script>
+</body>
+</html>
