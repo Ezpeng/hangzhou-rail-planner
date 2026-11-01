@@ -4,67 +4,124 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>杭州铁路线路规划</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   杭州铁路线路规划 · UI 2.0
-   设计令牌（浅色）
+   杭州铁路线路规划 · 宋韵江南 × 瑞士网格风
    ============================================================ */
 :root{
   color-scheme: light;
-  --bg:#f3f5f9; --card:#ffffff; --card2:#f7f8fc; --inset:#eef1f7;
-  --ink:#171d2c; --ink2:#4b5874; --mute:#7a869e;
-  --line:#e3e7f0; --line2:#ecEFF6; --line-strong:#c6cfe0;
-  --accent:#0052d9; --accent-soft:#e8f1ff; --accent-ink:#003cab; --accent-line:#b3cdf6;
-  --accent-grad:linear-gradient(135deg,#0052d9 0%,#1a73ff 60%,#36a3ff 100%);
-  --g:#e83a30;  --g-text:#c92b22;  --g-tint:rgba(232,58,48,.09);
-  --d:#0052d9;  --d-text:#003cab;  --d-tint:rgba(0,82,217,.09);
-  --k:#00a870;  --k-text:#007d54;  --k-tint:rgba(0,168,112,.10);
-  --transfer:#f08a12; --transfer-text:#b36207; --transfer-tint:rgba(240,138,18,.12);
-  --warn:#d97706; --warn-text:#a35605; --warn-tint:rgba(217,119,6,.11);
-  --ferry:#0a8fa0; --ferry-text:#077282; --ferry-tint:rgba(10,143,160,.11);
-  --rail:#a3aec2; --rail-tie:#ccd4e2;
-  --map-fill:#eef2f9; --map-stroke:#c0cce0; --map-grid:#e0e7f2; --glow:rgba(0,82,217,.25);
-  --chip-ink:#fff;
-  --shadow:0 6px 24px rgba(23,43,90,.06);
-  --shadow-lg:0 14px 40px rgba(23,43,90,.13);
-  --r:16px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* 宣纸与水墨基底 */
+  --bg:#F6F4EE;
+  --card:#FBF9F5;
+  --card2:#F1EDE4;
+  --inset:#E8E3D8;
+  --ink:#181A1B;
+  --ink2:#4A5054;
+  --mute:#7A8084;
+  /* 瑞士极细水墨网格线 */
+  --line:rgba(24,26,27,0.12);
+  --line2:rgba(24,26,27,0.07);
+  --line-strong:rgba(24,26,27,0.24);
+  /* 汝窑天青主色调 */
+  --accent:#2B5B6C;
+  --accent-soft:rgba(43,91,108,0.09);
+  --accent-ink:#1D4350;
+  --accent-line:rgba(43,91,108,0.35);
+  --accent-grad:linear-gradient(135deg,#2B5B6C 0%,#3A6E6C 100%);
+  /* 宋画矿物四色：G朱砂 / D天青 / K竹青 / F黛蓝 / 换乘泥金 */
+  --g:#B83B2B;  --g-text:#962B1D;  --g-tint:rgba(184,59,43,0.09);
+  --d:#2B5B6C;  --d-text:#1E4654;  --d-tint:rgba(43,91,108,0.10);
+  --k:#3D6E58;  --k-text:#2B5442;  --k-tint:rgba(61,110,88,0.10);
+  --transfer:#B57C2E; --transfer-text:#8C5D1B; --transfer-tint:rgba(181,124,46,0.12);
+  --warn:#B85D2B; --warn-text:#8F4218; --warn-tint:rgba(184,93,43,0.11);
+  --ferry:#4A6875; --ferry-text:#344E59; --ferry-tint:rgba(74,104,117,0.11);
+  --rail:#8C9296; --rail-tie:#C8C4BA;
+  /* 舆图专用色 */
+  --map-fill:#EFECE4;
+  --map-land:#FAF8F3;
+  --map-stroke:#B8B3A8;
+  --map-grid:rgba(24,26,27,0.06);
+  --glow:rgba(43,91,108,0.22);
+  --chip-ink:#FBF9F5;
+  /* 克制阴影与微切角 */
+  --shadow:0 2px 10px rgba(24,26,27,0.03);
+  --shadow-lg:0 12px 32px rgba(24,26,27,0.08);
+  --r:2px;
+  /* 字体家族 */
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:"Noto Sans SC",-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 }
-/* ---------- 深色主题 ---------- */
 @media (prefers-color-scheme: dark){
   :root{
     color-scheme: dark;
-    --bg:#0c111c; --card:#141a28; --card2:#181f30; --inset:#101725;
-    --ink:#e9edf5; --ink2:#9fabc0; --mute:#76829a;
-    --line:#242e44; --line2:#202940; --line-strong:#303d58;
-    --accent:#6aa6ff; --accent-soft:#152642; --accent-ink:#9cc2ff; --accent-line:#2c4a72;
-    --accent-grad:linear-gradient(135deg,#4d94ff 0%,#6ab1ff 60%,#8cc8ff 100%);
-    --g:#ff6b60;  --g-text:#ff8f86;  --g-tint:rgba(255,107,96,.15);
-    --d:#6aa6ff;  --d-text:#8db8ff;  --d-tint:rgba(106,166,255,.15);
-    --k:#35c98f;  --k-text:#5ad9a7;  --k-tint:rgba(53,201,143,.15);
-    --transfer:#f9ab45; --transfer-text:#fbbe6e; --transfer-tint:rgba(249,171,69,.16);
-    --warn:#f0a35c; --warn-text:#f5b979; --warn-tint:rgba(240,163,92,.14);
-    --ferry:#37c0d6; --ferry-text:#5fd0e2; --ferry-tint:rgba(55,192,214,.15);
-    --rail:#52627e; --rail-tie:#3a4a63;
-    --map-fill:#101826; --map-stroke:#2b3a52; --map-grid:#1a2536; --glow:rgba(106,166,255,.25);
-    --shadow:0 10px 30px rgba(0,0,0,.4);
-    --shadow-lg:0 16px 44px rgba(0,0,0,.5);
+    --bg:#0E1112;
+    --card:#14181A;
+    --card2:#1A1F22;
+    --inset:#101416;
+    --ink:#EAE6DF;
+    --ink2:#A5A29B;
+    --mute:#6E6D68;
+    --line:rgba(234,230,223,0.11);
+    --line2:rgba(234,230,223,0.06);
+    --line-strong:rgba(234,230,223,0.22);
+    --accent:#5C9BAE;
+    --accent-soft:rgba(92,155,174,0.14);
+    --accent-ink:#89C2D4;
+    --accent-line:rgba(92,155,174,0.4);
+    --accent-grad:linear-gradient(135deg,#3A6E7E 0%,#4E8985 100%);
+    --g:#D95B4B;  --g-text:#F08578;  --g-tint:rgba(217,91,75,0.16);
+    --d:#5C9BAE;  --d-text:#85BFD1;  --d-tint:rgba(92,155,174,0.16);
+    --k:#589A7D;  --k-text:#7EC2A4;  --k-tint:rgba(88,154,125,0.16);
+    --transfer:#D49A4B; --transfer-text:#E8B872; --transfer-tint:rgba(212,154,75,0.16);
+    --warn:#D98254; --warn-text:#EDA37C; --warn-tint:rgba(217,130,84,0.15);
+    --ferry:#6892A3; --ferry-text:#90B8C9; --ferry-tint:rgba(104,146,163,0.16);
+    --rail:#545B5E; --rail-tie:#343A3D;
+    --map-fill:#111517;
+    --map-land:#181D20;
+    --map-stroke:#384044;
+    --map-grid:rgba(234,230,223,0.05);
+    --glow:rgba(92,155,174,0.28);
+    --chip-ink:#0E1112;
   }
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-  margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  background:var(--bg);color:var(--ink);line-height:1.6;padding:0 20px 48px;
+  margin:0;
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  padding:0 28px 64px;
+  border-top:4px double var(--line-strong);
+  position:relative;
 }
-body::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--g) 0 25%,var(--d) 25% 50%,var(--k) 50% 75%,var(--ferry) 75% 100%)}
-.wrap{max-width:880px;margin:0 auto}
+/* 宣纸微噪点肌理 */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+  opacity:0.026;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wrap{max-width:1380px;margin:0 auto}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ---------- 动效系统 ---------- */
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes routeDraw{to{stroke-dashoffset:0}}
 @keyframes pulseRing{0%{box-shadow:0 0 0 0 var(--transfer-tint)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes hzPulse{0%{transform:scale(.45);opacity:.75}70%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
 @keyframes trackGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes dotPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes numPop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes ferryDash{to{stroke-dashoffset:-21}}
 .anim-in{animation:fadeInUp .38s cubic-bezier(.22,.8,.32,1) both}
 .track{transform-origin:left center;animation:trackGrow .5s cubic-bezier(.22,.8,.32,1) both}
 .node-dot{animation:dotPop .35s cubic-bezier(.22,.8,.32,1) both}
@@ -72,41 +129,66 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 .seg-path{animation:routeDraw 1.1s cubic-bezier(.4,0,.2,1) both}
 #mapSvg .draw-once .from-dot,#mapSvg .draw-once .to-dot,#mapSvg .draw-once .xfer-dot,#mapSvg .draw-once .mid-dot{transform-box:fill-box;transform-origin:center;animation:dotPop .45s cubic-bezier(.22,.8,.32,1) both}
 #mapSvg .draw-once .rlabel{animation:fadeInUp .5s cubic-bezier(.22,.8,.32,1) both}
+.hz-pulse{fill:none;stroke:var(--g);stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:hzPulse 2.6s ease-out infinite}
 .ferry-path{stroke-dasharray:13 8;animation:ferryDash 1.6s linear infinite}
-@keyframes ferryDash{to{stroke-dashoffset:-21}}
 .stat-v{animation:numPop .45s cubic-bezier(.22,.8,.32,1) both}
 .tile b{animation:numPop .45s cubic-bezier(.22,.8,.32,1) both}
 @media (prefers-reduced-motion: reduce){
-  .anim-in,.track,.node-dot,.seg-path,.ferry-path,.stat-v,.tile b{animation:none}
+  .anim-in,.track,.node-dot,.seg-path,.ferry-path,.stat-v,.tile b,.hz-pulse{animation:none}
   .seg-path,.ferry-path{stroke-dasharray:none;stroke-dashoffset:0}
 }
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* ---------- 页头 ---------- */
-.page-head{display:flex;align-items:center;gap:12px;margin:20px 0 2px}
-.logo{width:42px;height:42px;border-radius:12px;flex:none;background:var(--accent-grad);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px var(--glow)}
-.logo svg{width:23px;height:23px}
-.page-title{margin:0;font-size:22px;font-weight:700;letter-spacing:.5px;line-height:1.3}
-.page-sub{margin:2px 0 0;font-size:13px;color:var(--ink2)}
-.meta{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-items:center}
-.pill{font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;white-space:nowrap}
+/* ---------- 刊头 ---------- */
+.page-head{display:flex;align-items:center;gap:16px;margin:26px 0 6px}
+.logo{
+  width:46px;height:46px;border-radius:2px;flex:none;
+  background:var(--g);color:#FBF9F5;border:1px solid var(--g);
+  display:grid;place-items:center;
+}
+.logo svg{width:26px;height:26px}
+.eyebrow{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--mute);
+  text-transform:uppercase;margin:0 0 2px;
+}
+.page-title{margin:0;font-family:var(--serif);font-size:28px;font-weight:700;letter-spacing:.04em;line-height:1.3}
+.page-sub{margin:3px 0 0;font-size:13px;color:var(--ink2);letter-spacing:.02em}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.pill{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  color:var(--ink2);background:var(--card);border:1px solid var(--line-strong);
+  border-radius:2px;padding:4px 10px;white-space:nowrap;
+}
 
 /* ---------- 搜索 ---------- */
-.search-box{position:relative;margin:18px 0 12px}
-.s-input{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--line-strong);border-radius:var(--r);padding:0 14px;height:56px;box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s,transform .2s}
-.s-input:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft),var(--shadow-lg);transform:translateY(-1px)}
+.search-box{position:relative;margin:22px 0 12px;max-width:760px}
+.s-input{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--line-strong);border-radius:2px;
+  padding:0 16px;height:56px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.s-input:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.origin-tag{
+  flex:none;font-size:12px;font-weight:600;color:var(--accent);
+  border-right:1px solid var(--line-strong);padding-right:12px;white-space:nowrap;
+  letter-spacing:.04em;
+}
 .s-icon{color:var(--mute);display:grid;place-items:center;flex:none}
-.s-input input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--ink);font-size:16px;font-family:inherit;padding:0}
+.s-input input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--ink);font-size:16px;font-family:var(--sans);padding:0}
 .s-input input::placeholder{color:var(--mute)}
-.s-kbd{border:1px solid var(--line-strong);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--mute);white-space:nowrap}
-.dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lg);overflow:hidden;display:none;transform-origin:top center}
+.s-kbd{border:1px solid var(--line-strong);border-radius:2px;padding:3px 8px;font-size:10px;font-family:var(--mono);color:var(--mute);white-space:nowrap;letter-spacing:.05em}
+.dropdown{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:30;
+  background:var(--card);border:1px solid var(--line);border-radius:2px;
+  box-shadow:var(--shadow-lg);overflow:hidden;display:none;transform-origin:top center;
+}
 .dropdown.show{display:block;animation:fadeInUp .22s cubic-bezier(.22,.8,.32,1) both}
-.dd-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--line)}
+.dd-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--line2)}
 .dd-item:last-of-type{border-bottom:none}
 .dd-item:hover,.dd-item.active{background:var(--accent-soft)}
 .dd-name{font-size:15px;font-weight:600;color:var(--ink)}
-.dd-prov{margin-left:auto;font-size:12px;color:var(--mute);white-space:nowrap}
-.dd-tag{font-size:11px;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.dd-prov{margin-left:auto;font-size:12px;color:var(--mute);white-space:nowrap;font-family:var(--mono)}
+.dd-tag{font-size:11px;padding:1px 8px;border-radius:2px;white-space:nowrap}
 .dd-tag--special{color:var(--warn-text);background:var(--warn-tint)}
 .dd-tag--alias{color:var(--d-text);background:var(--d-tint)}
 .dd-tag--none{color:var(--ink2);background:var(--card2);border:1px solid var(--line)}
@@ -114,176 +196,291 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 .dd-foot{display:flex;gap:16px;flex-wrap:wrap;padding:9px 16px;font-size:11px;color:var(--mute);background:var(--card2);border-top:1px solid var(--line)}
 
 /* ---------- 热门 + 最近 ---------- */
-.hot-label{font-size:12px;color:var(--mute);margin:16px 0 8px}
+.hot-label{font-size:11px;color:var(--mute);margin:18px 0 8px;font-family:var(--mono);letter-spacing:.08em}
 .hot{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1px solid var(--line-strong);background:var(--card);color:var(--ink);padding:6px 14px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s,background .15s}
-.chip:hover,.chip:focus-visible{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);outline:none}
+.chip{
+  border:1px solid var(--line-strong);border-left:3px solid transparent;
+  background:var(--card);color:var(--ink);
+  padding:6px 14px;border-radius:2px;font-size:13px;cursor:pointer;font-family:var(--sans);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.chip:hover,.chip:focus-visible{border-left-color:var(--accent);color:var(--accent);background:var(--accent-soft);outline:none}
 .chip.recent{color:var(--ink2);border-style:dashed}
 
-/* ---------- 统计概览 ---------- */
-.stats-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 12px;box-shadow:var(--shadow);margin:14px 0 12px;animation:fadeInUp .38s cubic-bezier(.22,.8,.32,1) both}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.tile{background:var(--card2);border:1px solid var(--line2);border-radius:11px;padding:10px 12px 9px;position:relative;overflow:hidden}
-.tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tbar,var(--accent-soft));border-radius:0 3px 3px 0}
-.tile b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
+/* ---------- 瑞士双栏网格 ---------- */
+.editorial-grid{
+  display:grid;
+  grid-template-columns:500px minmax(0,1fr);
+  gap:28px;
+  align-items:start;
+  margin-top:20px;
+  padding-top:20px;
+  border-top:1px solid var(--line-strong);
+}
+.col-visual{
+  position:sticky;
+  top:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  min-width:0;
+}
+.col-routes{min-width:0}
+
+/* ---------- 统计卡 ---------- */
+.stats-card{
+  background:var(--card);border:1px solid var(--line);border-radius:2px;
+  padding:14px 16px 12px;box-shadow:var(--shadow);
+  animation:fadeInUp .38s cubic-bezier(.22,.8,.32,1) both;
+}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{background:var(--card2);border:1px solid var(--line2);border-radius:2px;padding:10px 12px 9px;position:relative;overflow:hidden}
+.tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tbar,var(--accent-soft))}
+.tile b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
 .tile i{font-style:normal;font-size:11px;color:var(--mute)}
 .tile.zero b{color:var(--mute)}
-.dist{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line2)}
-.dist-head{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:7px}
-.dist-head i{font-style:normal;font-weight:500;color:var(--mute);font-size:11px}
+.dist{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line-strong)}
+.dist-head{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:7px}
+.dist-head i{font-style:normal;font-weight:400;color:var(--mute);font-size:11px;font-family:var(--mono)}
 .dist-rows{display:flex;flex-direction:column;gap:5px}
 .drow{display:flex;align-items:center;gap:9px}
-.drow .dl{flex:none;width:62px;font-size:11.5px;color:var(--ink2);text-align:right}
-.drow .dt{flex:1;background:var(--inset);border-radius:6px;height:9px;overflow:hidden}
-.drow .dt i{display:block;height:100%;border-radius:6px;min-width:6px;transition:width .35s ease}
+.drow .dl{flex:none;width:60px;font-size:11.5px;color:var(--ink2);text-align:right}
+.drow .dt{flex:1;background:var(--inset);border-radius:1px;height:7px;overflow:hidden}
+.drow .dt i{display:block;height:100%;min-width:4px;transition:width .35s ease}
 .drow b{flex:none;width:26px;font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
-.stats-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line2);font-size:11.5px;color:var(--ink2)}
-.stats-foot .src{margin-left:auto;color:var(--mute)}
-.dist-note{display:flex;gap:8px;align-items:flex-start;margin-top:11px;padding:9px 11px;border-radius:9px;background:var(--transfer-tint);color:var(--warn-text);font-size:12.5px;border:1px dashed var(--transfer)}
+.stats-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line-strong);font-size:11.5px;color:var(--ink2)}
+.stats-foot .chipf{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink2);background:var(--inset);border-radius:2px;padding:2px 7px}
+.stats-foot .src{margin-left:auto;color:var(--mute);font-size:11px}
+.dist-note{display:flex;gap:8px;align-items:flex-start;margin-top:11px;padding:9px 11px;border-radius:2px;background:var(--transfer-tint);color:var(--warn-text);font-size:12.5px;border:1px dashed var(--transfer)}
 
 /* ---------- 筛选器 ---------- */
-.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:5px;background:var(--inset);border-radius:11px;width:fit-content;max-width:100%}
-.seg-btn{border:none;background:transparent;color:var(--ink2);font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .13s}
+.filter-bar{display:flex;gap:2px;flex-wrap:wrap;margin:0 0 14px;padding:4px;background:var(--inset);border-radius:2px;width:fit-content;max-width:100%;border:1px solid var(--line2)}
+.seg-btn{border:none;background:transparent;color:var(--ink2);font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:2px;cursor:pointer;font-family:var(--sans);transition:all .13s}
 .seg-btn:hover{color:var(--accent)}
-.seg-btn[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg-btn[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(24,26,27,.08)}
 .seg-btn .cnt{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-left:3px}
 .seg-btn[aria-pressed="true"] .cnt{color:var(--accent)}
 
-/* ---------- 地图 ---------- */
-.map-wrap{margin:0 0 14px}
-.map-box{position:relative;aspect-ratio:5/3.4;min-height:260px;max-height:460px;border-radius:12px;overflow:hidden;background:var(--map-fill);border:1px solid var(--line);box-shadow:var(--shadow)}
+/* ---------- 舆图 ---------- */
+.map-wrap{margin:0}
+.map-box{position:relative;aspect-ratio:5/4;min-height:280px;max-height:420px;border-radius:2px;overflow:hidden;background:var(--map-fill);border:1px solid var(--line-strong)}
 .map-box svg{display:block;width:100%;height:100%}
-.land{fill:var(--map-fill);stroke:var(--map-stroke);stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 2px 6px rgba(0,0,0,.14))}
+.land{fill:var(--map-land);stroke:var(--map-stroke);stroke-width:1.5;stroke-linejoin:round}
+.graticule-line{stroke:var(--map-grid);stroke-width:1;shape-rendering:crispEdges}
+.graticule-label{font-family:var(--mono);font-size:9px;fill:var(--mute);opacity:.75}
 .cdot{cursor:pointer;transition:opacity .25s}
 .cdot.dim{opacity:.28}
 .cdot.focus{stroke:var(--accent);stroke-width:2.5}
-.rlabel{font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3.5px;pointer-events:none}
-.seg-underlay{fill:none;stroke-width:10;opacity:.15;stroke-linecap:round}
-.seg-path{fill:none;stroke-width:3.4;stroke-linecap:round}
-.seg-path.hover{stroke-width:5.5;filter:drop-shadow(0 0 6px var(--glow))}
+.rlabel{font-family:var(--serif);font-size:12.5px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3.5px;pointer-events:none}
+.seg-underlay{fill:none;stroke-width:10;opacity:.13;stroke-linecap:round}
+.seg-path{fill:none;stroke-width:2.4;stroke-linecap:round}
+.seg-path.hover{stroke-width:4;filter:drop-shadow(0 0 5px var(--glow))}
 .t-G{stroke:var(--g)} .t-D{stroke:var(--d)} .t-K{stroke:var(--k)} .t-F{stroke:var(--ferry)}
-.xfer-dot{fill:var(--card);stroke:var(--transfer);stroke-width:3}
-.xfer-dot.in{fill:var(--transfer);stroke:var(--card);stroke-width:1.5}
-.from-dot{fill:var(--accent);stroke:var(--card);stroke-width:2}
-.to-dot{fill:var(--ink);stroke:var(--card);stroke-width:2}
-.mid-dot{fill:var(--card);stroke:var(--rail);stroke-width:1.6}
-.ferry-path{fill:none;stroke:var(--ferry);stroke-width:2.6;stroke-dasharray:7 6;stroke-linecap:round}
-.map-tip{position:absolute;z-index:30;pointer-events:none;display:none;background:var(--ink);color:var(--card);font-size:12px;line-height:1.4;padding:5px 10px;border-radius:8px;max-width:180px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.xfer-dot{fill:var(--card);stroke:var(--transfer);stroke-width:2.4}
+.xfer-dot.in{fill:var(--transfer);stroke:var(--card);stroke-width:1.2}
+.from-dot{fill:var(--g);stroke:var(--card);stroke-width:1.8}
+.to-dot{fill:var(--ink);stroke:var(--card);stroke-width:1.8}
+.mid-dot{fill:var(--card);stroke:var(--rail);stroke-width:1.4}
+.ferry-path{fill:none;stroke:var(--ferry);stroke-width:2;stroke-dasharray:13 8;stroke-linecap:round}
+.map-tip{position:absolute;z-index:30;pointer-events:none;display:none;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.4;padding:5px 10px;border-radius:2px;max-width:180px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .map-tip.show{display:block}
 .map-tip b{font-size:13px}
 .map-tip .role{opacity:.75;margin-left:4px}
-.map-cap{position:absolute;top:8px;right:10px;z-index:10;font-size:10px;color:var(--mute);background:var(--card);border:1px solid var(--line);padding:2px 8px;border-radius:999px}
-.map-legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;margin-top:8px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:11px;color:var(--ink2)}
+.map-cap{
+  position:absolute;top:10px;left:10px;z-index:10;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--ink2);
+  background:var(--card);border:1px solid var(--line);padding:3px 9px;border-radius:2px;
+}
+.map-legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;margin-top:8px;border-radius:2px;background:var(--card);border:1px solid var(--line);font-size:11px;color:var(--ink2)}
 .lg{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.lg .bar{width:18px;height:3px;border-radius:2px}
+.lg .bar{width:18px;height:2px;border-radius:0}
 .lg .dot{width:8px;height:8px;border-radius:50%;border:2px solid var(--transfer);background:var(--card)}
-.lg .sq{width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.lg .sq{width:8px;height:8px;border-radius:0;background:var(--g)}
 .lg .ring{width:8px;height:8px;border-radius:50%;border:2px solid var(--ink)}
 .lg .dash{width:18px;height:0;border-top:2px dashed var(--ferry)}
 
 /* ---------- 方案卡 ---------- */
-.sec-label{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-size:13px;font-weight:600;color:var(--ink2)}
-.sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px 16px;margin:14px 0;transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .22s,border-color .22s}
+.sec-label{
+  display:flex;align-items:center;gap:12px;margin:0 0 14px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);
+}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--line-strong)}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:2px;
+  box-shadow:var(--shadow);padding:18px 20px 16px;margin:0 0 16px;
+  transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .22s,border-color .22s;
+}
 .card:hover{border-color:var(--accent-line);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
 .card--special{border-left:3px solid var(--warn)}
+.route-no{
+  display:block;width:100%;font-family:var(--mono);font-size:10px;
+  letter-spacing:.14em;color:var(--mute);margin-bottom:8px;
+}
 .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.od{font-size:19px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.od .arr{color:var(--mute);display:grid;place-items:center}
-.card-badges{display:flex;gap:6px;flex-wrap:wrap;padding-top:3px}
-.badge{font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap}
-.badge--solid{color:var(--chip-ink)}
-.badge--solid.g{background:linear-gradient(135deg,#f0554b,#e83a30)}
-.badge--solid.d{background:linear-gradient(135deg,#1a73ff,#0052d9)}
-.badge--solid.k{background:linear-gradient(135deg,#12c48a,#00a870)}
+.od{font-family:var(--serif);font-size:22px;font-weight:700;letter-spacing:.05em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.od .arr{color:var(--mute);display:grid;place-items:center;font-family:var(--sans);font-size:14px}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap;padding-top:5px}
+.badge{font-size:12px;font-weight:600;padding:4px 11px;border-radius:2px;white-space:nowrap}
+.badge--solid{color:var(--chip-ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.badge--solid.g{background:var(--g)}
+.badge--solid.d{background:var(--d)}
+.badge--solid.k{background:var(--k)}
 .badge--tf{color:var(--transfer-text);background:var(--transfer-tint)}
 .badge--ok{color:var(--k-text);background:var(--k-tint)}
 .badge--sp{color:var(--warn-text);background:var(--warn-tint)}
 .badge--plain{color:var(--ink2);background:var(--card2);border:1px solid var(--line)}
 
 /* 轨道示意图 */
-.schem{list-style:none;margin:14px 0 4px;padding:14px 12px 12px;display:flex;align-items:flex-start;background:var(--card2);border:1px solid var(--line);border-radius:12px;--tag-block:34px}
-.node{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:7px}
-.node-dot{width:16px;height:16px;border-radius:50%;flex:none;margin-top:var(--tag-block)}
-.node-dot--origin{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-.node-dot--dest{background:var(--ink);box-shadow:0 0 0 4px var(--line)}
-.node-dot--pass{background:var(--card);border:2px solid var(--rail)}
-.node-dot--transfer{background:linear-gradient(90deg,var(--t-prev,var(--transfer)) 0 50%,var(--t-next,var(--transfer)) 50% 100%);box-shadow:0 0 0 4px var(--transfer-tint)}
+.schem{
+  list-style:none;margin:16px 0 4px;padding:16px 14px 12px;
+  display:flex;align-items:flex-start;
+  background:var(--card2);border:1px solid var(--line2);border-radius:2px;
+  --tag-block:34px;
+}
+.node{flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.node-dot{width:14px;height:14px;border-radius:50%;flex:none;margin-top:var(--tag-block)}
+.node-dot--origin{background:var(--g);box-shadow:0 0 0 3px var(--g-tint)}
+.node-dot--dest{background:var(--ink);box-shadow:0 0 0 3px var(--line)}
+.node-dot--pass{background:var(--card);border:1.5px solid var(--rail)}
+/* 双环玉璧换乘节点：外环 18px 空心 + 内芯 8px 双色实心 */
+.node-dot--transfer{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--transfer);
+  background:linear-gradient(90deg,var(--t-prev,var(--transfer)) 0 50%,var(--t-next,var(--transfer)) 50% 100%);
+  background-size:8px 8px;background-repeat:no-repeat;background-position:center;
+  box-shadow:0 0 0 3px var(--transfer-tint);
+}
 .node-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
-.node-role{font-size:10px;padding:1px 8px;border-radius:999px;color:var(--mute);background:var(--card);border:1px solid var(--line);white-space:nowrap}
+.node-role{font-size:10px;padding:1px 8px;border-radius:2px;color:var(--mute);background:var(--card);border:1px solid var(--line);white-space:nowrap}
 .node-role--transfer{color:var(--transfer-text);background:var(--transfer-tint);border-color:transparent}
 .node-hint{font-size:10px;color:var(--mute);white-space:nowrap}
 .link{flex:1;min-width:104px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.line-tag{display:inline-flex;align-items:center;gap:6px;max-width:100%;font-size:12px;font-weight:600;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;white-space:nowrap}
-.linetype{width:20px;height:20px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.line-tag{
+  display:inline-flex;align-items:center;gap:6px;max-width:100%;
+  font-size:12px;font-weight:600;color:var(--ink2);
+  background:var(--card);border:1px solid var(--line);border-radius:2px;
+  padding:3px 10px 3px 4px;white-space:nowrap;
+}
+.linetype{width:19px;height:19px;border-radius:2px;flex:none;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
 .linetype.G{background:var(--g)} .linetype.D{background:var(--d)} .linetype.K{background:var(--k)} .linetype.F{background:var(--ferry)}
 .track-box{height:16px;display:flex;align-items:center;width:100%}
-.track{height:8px;width:100%;border-top:2px solid var(--rail-c,var(--rail));border-bottom:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(90deg,var(--rail-tie) 0 3px,transparent 3px 15px)}
+/* 双平行极细金属轨线（去枕木） */
+.track{
+  height:5px;width:100%;
+  border-top:1.5px solid var(--rail-c,var(--rail));
+  border-bottom:1px solid var(--rail-c,var(--rail));
+  background:none;
+}
 .track--g{--rail-c:var(--g)} .track--d{--rail-c:var(--d)} .track--k{--rail-c:var(--k)}
 .track--ferry{--rail-c:var(--ferry);border-style:dashed;background:none}
 
 /* 信息面板 */
 .panel{border-top:1px dashed var(--line-strong);padding-top:12px;margin-top:12px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.stat{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
-.stat-v{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat{background:var(--card2);border:1px solid var(--line2);border-radius:2px;padding:8px 10px;min-width:0}
+.stat-v{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .stat-l{font-size:11px;color:var(--mute);margin-top:1px}
 .t-g{color:var(--g-text)} .t-d{color:var(--d-text)} .t-k{color:var(--k-text)} .t-f{color:var(--ferry-text)}
-.callout{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:9px 12px;border-radius:10px;font-size:13px}
+.callout{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:9px 12px;border-radius:2px;font-size:13px}
 .callout svg{flex:none;margin-top:3px}
 .callout--ok{background:var(--k-tint);color:var(--k-text)}
 .callout--transfer{background:var(--transfer-tint);color:var(--transfer-text)}
 .callout--warn{background:var(--warn-tint);color:var(--warn-text);border:1px dashed var(--warn)}
 .callout b{font-weight:700}
+/* 经折式驿道序列 */
 .stops{margin-top:12px}
-.stops-label{font-size:12px;color:var(--mute);margin-bottom:6px}
-.stops-grid{display:flex;flex-wrap:wrap;gap:6px}
-.stop{font-size:12px;padding:3px 11px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
-.btn-expand{margin-top:8px;border:1px dashed var(--line-strong);background:transparent;color:var(--accent);font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+.stops-label{font-size:11px;color:var(--mute);margin-bottom:6px;font-family:var(--mono);letter-spacing:.06em}
+.stops-grid{display:flex;flex-wrap:wrap;gap:2px 0;align-items:center}
+.stop{
+  display:inline-flex;align-items:center;
+  font-size:12px;color:var(--ink2);
+  background:none;border:none;border-radius:0;padding:2px 0;
+}
+.stop::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--rail);margin:0 7px}
+.stop::after{content:"";width:14px;height:1px;background:var(--line-strong);margin:0 8px}
+.stop:last-child::after{display:none}
+.btn-expand{
+  margin-top:8px;border:1px dashed var(--line-strong);background:transparent;
+  color:var(--accent);font-size:12px;font-weight:600;padding:4px 12px;border-radius:2px;
+  cursor:pointer;font-family:var(--sans);
+}
 .btn-expand:hover{background:var(--accent-soft)}
 .t-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
-.t-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:7px 10px;flex-wrap:wrap}
-.t-idx{width:18px;height:18px;border-radius:50%;flex:none;background:var(--transfer-tint);color:var(--transfer-text);display:grid;place-items:center;font-size:11px;font-weight:700}
+.t-row{
+  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);
+  background:var(--card2);border:1px solid var(--line2);border-radius:2px;
+  padding:7px 10px;flex-wrap:wrap;
+}
+.t-idx{
+  width:18px;height:18px;border-radius:2px;flex:none;
+  background:var(--transfer-tint);color:var(--transfer-text);
+  display:grid;place-items:center;font-size:11px;font-weight:700;font-family:var(--mono);
+}
 .t-row .linetype{width:16px;height:16px;font-size:9px}
 .t-row .lname{font-weight:600;color:var(--ink)}
 .t-hint{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--transfer-text);padding:2px 4px}
-.t-hint .i{width:13px;height:13px;flex:none}
-.t-hint.k{color:var(--mute)}
 .ref-route{font-size:12px;color:var(--ink2);margin-top:10px}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
-.btn-copy{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line-strong);color:var(--ink2);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-copy{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card2);border:1px solid var(--line-strong);color:var(--ink2);
+  border-radius:2px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);
+  transition:all .15s;
+}
 .btn-copy:hover{border-color:var(--accent);color:var(--accent)}
 .btn-copy.done{color:var(--k-text);border-color:var(--k)}
-.btn12306{display:inline-flex;align-items:center;gap:6px;background:var(--accent-grad);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px var(--glow);transition:transform .18s,box-shadow .18s,filter .18s}
-.btn12306:hover{transform:translateY(-1px);box-shadow:0 8px 20px var(--glow);filter:brightness(1.05)}
+/* 松烟墨实心按钮 */
+.btn12306{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--ink);color:var(--bg);
+  border:none;border-radius:2px;padding:9px 18px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:.05em;
+  transition:background .18s,color .18s,transform .18s;
+}
+.btn12306:hover{background:var(--d);color:var(--card);transform:translateY(-1px)}
+.empty-box{
+  background:var(--card);border:1px solid var(--line);border-radius:2px;
+  padding:34px 20px;text-align:center;color:var(--mute);font-size:14px;margin:14px 0;
+}
 
 /* ---------- 图例 / 页脚 / 省份 ---------- */
-.legend{margin:22px 0 4px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
-.legend-title{font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px}
-.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 18px}
+.legend{margin:28px 0 4px;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:2px}
+.legend-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink2);margin:0 0 12px}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 18px}
 .lg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
-.lg-track{width:26px;height:8px;flex:none;border-top:2px solid var(--rail-c,var(--rail));border-bottom:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(90deg,var(--rail-tie) 0 2px,transparent 2px 10px)}
-.lg-track--ferry{border-style:dashed;background:none}
-.lg-dot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid var(--transfer);background:var(--card);position:relative;overflow:hidden}
-.lg-dot::after{content:"";position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--g)}
-.lg-dot::before{content:"";position:absolute;right:0;top:0;bottom:0;width:50%;background:var(--d)}
+.lg-track{width:26px;height:5px;flex:none;border-top:1.5px solid var(--rail-c,var(--rail));border-bottom:1px solid var(--rail-c,var(--rail))}
+.lg-track--ferry{border-style:dashed}
+.lg-dot{
+  width:16px;height:16px;border-radius:50%;flex:none;border:2px solid var(--transfer);
+  position:relative;background:linear-gradient(90deg,var(--g) 0 50%,var(--d) 50% 100%);
+  background-size:7px 7px;background-repeat:no-repeat;background-position:center;
+}
 .allcities{margin:16px 0 0}
 .allcities summary{cursor:pointer;font-size:13px;color:var(--accent);user-select:none}
-.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px;margin-top:10px}
+.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 16px;margin-top:10px}
 .prov-grid .p{font-size:13px}
 .prov-grid .p b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
 .prov-grid .p span{color:var(--mute);font-size:12px;line-height:1.8}
-.footer{margin:26px 0 8px;color:var(--mute);font-size:12px;text-align:center;line-height:1.9}
+.footer{
+  margin:28px 0 8px;padding-top:18px;border-top:1px solid var(--line-strong);
+  color:var(--mute);font-size:12px;text-align:center;line-height:1.9;
+}
 .footer b{color:var(--ink2);font-weight:600}
-.empty-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:34px 20px;text-align:center;color:var(--mute);font-size:14px;margin:14px 0}
 
 /* ---------- 响应式 ---------- */
-@media (max-width:840px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:1024px){
+  .editorial-grid{grid-template-columns:1fr}
+  .col-visual{position:static}
+}
+@media (max-width:840px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+}
 @media (max-width:640px){
   body{padding:0 16px 40px}
-  .page-title{font-size:20px}
+  .page-title{font-size:24px}
   .meta{margin-left:0}
   .card{padding:14px 14px 14px}
+  .od{font-size:19px}
   .schem{flex-direction:column;align-items:stretch;padding:12px 12px 10px}
   .node{flex-direction:row;width:100%;align-items:center;gap:10px;min-height:38px}
   .node-dot{margin-top:0}
@@ -291,8 +488,13 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
   .link{flex-direction:row;align-items:flex-start;gap:12px;width:100%;min-width:0;padding:2px 0}
   .link .track-box{order:1;width:8px;height:52px;flex:none;margin-left:4px}
   .link .line-tag{order:2;margin-top:12px}
-  .track{height:100%;width:8px;border:none;border-left:2px solid var(--rail-c,var(--rail));border-right:2px solid var(--rail-c,var(--rail));background:repeating-linear-gradient(180deg,var(--rail-tie) 0 3px,transparent 3px 15px);transform-origin:top center}
-  .track--ferry{border-style:dashed;background:none}
+  .track{
+    height:100%;width:5px;border:none;
+    border-left:1.5px solid var(--rail-c,var(--rail));
+    border-right:1px solid var(--rail-c,var(--rail));
+    background:none;transform-origin:top center;
+  }
+  .track--ferry{border-style:dashed}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .actions .btn12306{flex:1;justify-content:center}
   .dd-prov{display:none}
@@ -309,6 +511,8 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
   .linetype.D{background:var(--d-tint);color:var(--d-text)}
   .linetype.K{background:var(--k-tint);color:var(--k-text)}
   .linetype.F{background:var(--ferry-tint);color:var(--ferry-text)}
+  .btn12306{background:var(--ink);color:var(--bg)}
+  .btn12306:hover{background:var(--d);color:var(--card)}
 }
 </style>
 </head>
@@ -317,11 +521,12 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 
   <header class="page-head">
     <div class="logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="13" rx="4.5"/><path d="M8 3v4.5a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V3"/><circle cx="7.5" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/>
+      <svg viewBox="0 0 24 24" width="26" height="26">
+        <text x="12" y="16.8" text-anchor="middle" font-size="13.5" font-weight="700" fill="currentColor" style="font-family:var(--serif)">杭</text>
       </svg>
     </div>
     <div>
+      <p class="eyebrow">ARCHIVE 0571 // NATIONAL RAILWAY TOPOLOGY · 杭城铁道舆图</p>
       <h1 class="page-title">杭州铁路线路规划</h1>
       <p class="page-sub">输入目的地城市，查看从杭州出发的直达 / 中转方案 · 覆盖全国地级市 · 宏观规划参考</p>
     </div>
@@ -333,28 +538,29 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 
   <div class="search-box">
     <div class="s-input">
+      <span class="origin-tag">始发 · 杭州</span>
       <span class="s-icon" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="4.5"/><path d="M11 11l4.5 4.5"/></svg>
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="4.5"/><path d="M11 11l4.5 4.5"/></svg>
       </span>
       <input type="text" id="q" aria-label="搜索目的地城市" placeholder="输入目的地城市，如：邯郸、普洱、阿勒泰、舟山…" autocomplete="off">
-      <span class="s-kbd">Enter 查询</span>
+      <span class="s-kbd">ENTER 查询</span>
     </div>
     <div class="dropdown" id="dropdown" role="listbox" aria-label="城市建议"></div>
   </div>
 
-  <p class="hot-label" id="hotLabel">热门城市</p>
+  <p class="hot-label" id="hotLabel">HOT DESTINATIONS · 热门城市</p>
   <div class="hot" id="hot"></div>
 
   <div id="result"></div>
 
   <div class="legend" id="legend">
-    <p class="legend-title">图例</p>
+    <p class="legend-title">LEGEND · 图例</p>
     <div class="legend-grid">
       <span class="lg-item"><span class="lg-track" style="--rail-c:var(--g)"></span>高铁 G · 300km/h 级</span>
       <span class="lg-item"><span class="lg-track" style="--rail-c:var(--d)"></span>动车 D · 200~250km/h</span>
       <span class="lg-item"><span class="lg-track" style="--rail-c:var(--k)"></span>普速 K/T/Z</span>
       <span class="lg-item"><span class="lg-track lg-track--ferry" style="--rail-c:var(--ferry)"></span>轮渡 / 跨海</span>
-      <span class="lg-item"><span class="lg-dot"></span>换乘点（双色=来向/去向）</span>
+      <span class="lg-item"><span class="lg-dot"></span>换乘点（玉璧双色=来向/去向）</span>
     </div>
   </div>
 
@@ -677,12 +883,13 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 
   var $ = function(id){ return document.getElementById(id); };
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var el = function(tag, cls){ var n = document.createElement(tag); if(cls) n.className = cls; return n; };
   var q = $('q'), dd = $('dropdown'), result = $('result'), hotEl = $('hot');
 
   $('pillLines').textContent = '路网 ' + LINES.length + ' 条线路';
   $('pillCities').textContent = allCities.length + ' 城可查';
 
-  var state = { kind:null, city:null, routes:[], filter:'all', direct:null, special:null, mapShown:false, hoverIdx:-1 };
+  var state = { kind:null, city:null, routes:[], filter:'all', direct:null, special:null, mapRouteIdx:-1 };
 
   /* ================= 工具函数 ================= */
   function normalize(s){ return (s||'').replace(/\s+/g,''); }
@@ -712,14 +919,14 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     hotEl.innerHTML = '';
     var recent = getRecent();
     recent.forEach(function(c){
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'chip recent'; b.textContent = c;
+      var b = el('button','chip recent');
+      b.type = 'button'; b.textContent = c;
       b.addEventListener('click', function(){ doSearch(c); });
       hotEl.appendChild(b);
     });
     HOT.forEach(function(c){
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'chip'; b.textContent = c;
+      var b = el('button','chip');
+      b.type = 'button'; b.textContent = c;
       b.addEventListener('click', function(){ doSearch(c); });
       hotEl.appendChild(b);
     });
@@ -738,8 +945,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     }
     ddActive = Math.min(ddActive, list.length - 1);
     list.forEach(function(c, i){
-      var d = document.createElement('div');
-      d.className = 'dd-item' + (i === ddActive ? ' active' : '');
+      var d = el('div','dd-item' + (i === ddActive ? ' active' : ''));
       d.setAttribute('role','option');
       var prov = PROVINCE[c] || '';
       var tag = '';
@@ -823,7 +1029,6 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
 
     var toLineNames = toLines.map(function(t){ return t.name; });
     queue.filter(function(n){ return toLineNames.indexOf(n.name) >= 0 && n.transfers > 0; }).forEach(function(r){
-      // 沿 parent 链回溯出完整线路序列与换乘城市
       var chain = [], viaChain = [], node = r;
       while(node){
         chain.unshift(node.name);
@@ -891,18 +1096,17 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     return rs;
   }
 
-  /* ================= 地图 ================= */
+  /* ================= 舆图 ================= */
   var LAND_PATH = "M790,11 L820,35 L860,55 L900,75 L940,92 L972,105 L987,118 L970,145 L944,185 L930,215 L922,244 L905,258 L888,263 L868,272 L848,282 L822,298 L800,295 L784,294 L778,305 L778,317 L762,325 L745,320 L728,315 L720,325 L724,338 L734,350 L748,356 L758,362 L772,350 L786,349 L782,365 L770,378 L758,376 L750,383 L744,393 L736,400 L742,410 L750,415 L740,428 L748,442 L762,448 L774,458 L781,475 L778,490 L774,500 L768,520 L767,540 L766,550 L756,572 L748,584 L742,598 L732,608 L726,616 L720,622 L712,634 L700,644 L690,650 L676,653 L664,656 L650,660 L636,660 L624,664 L612,670 L600,676 L590,682 L576,688 L566,685 L556,680 L544,670 L536,655 L528,648 L516,648 L500,655 L491,662 L480,660 L470,665 L459,689 L452,682 L442,668 L432,664 L422,668 L416,672 L408,660 L400,644 L392,630 L388,612 L392,596 L400,575 L408,557 L400,548 L390,536 L372,540 L352,545 L330,550 L310,554 L296,558 L280,560 L268,556 L264,548 L250,548 L236,550 L222,548 L206,542 L188,534 L170,530 L152,528 L140,522 L132,512 L130,494 L126,484 L120,472 L112,460 L106,446 L102,432 L104,420 L102,410 L98,398 L92,386 L82,378 L70,372 L56,368 L44,362 L34,352 L26,346 L24,336 L22,328 L16,314 L14,300 L24,294 L32,294 L40,280 L55,268 L75,264 L95,262 L115,258 L125,245 L122,228 L112,215 L118,206 L135,198 L148,188 L152,180 L148,165 L140,152 L146,134 L158,122 L178,110 L203,103 L237,101 L270,105 L300,118 L330,138 L352,152 L362,172 L366,191 L395,205 L430,215 L470,232 L500,244 L512,256 L540,258 L570,240 L595,215 L608,193 L632,179 L656,151 L672,141 L688,130 L700,110 L710,92 L730,55 L752,21 L775,12 Z";
   var HAINAN_PATH = "M610,695 C622,690 630,700 626,712 C622,745 610,762 596,760 C584,758 578,745 580,732 C582,712 596,700 610,695 Z";
   var TAIWAN_PATH = "M754,530 C762,522 770,530 768,545 C766,585 760,615 752,630 C748,600 746,560 754,530 Z";
   var mapWrap = null, mapSvg = null, cityLayer = null, routeLayer = null, labelLayer = null, mapTip = null;
 
   function buildMap(){
-    mapWrap = document.createElement('div');
-    mapWrap.className = 'map-wrap';
+    mapWrap = el('div','map-wrap');
     mapWrap.innerHTML =
       '<div class="map-box" id="mapBox">' +
-        '<span class="map-cap">线路示意 · 站点位置为示意图</span>' +
+        '<span class="map-cap">FIG.01 / 华夏铁道经纬略图</span>' +
         '<svg id="mapSvg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" aria-label="中国铁路线路示意图"></svg>' +
         '<div class="map-tip" id="mapTip"></div>' +
       '</div>' +
@@ -914,13 +1118,33 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         '<span class="lg"><span class="sq"></span>出发</span>' +
         '<span class="lg"><span class="ring"></span>到达</span>' +
         '<span class="lg"><span class="dot"></span>换乘点</span>' +
-        '<span class="lg" style="margin-left:auto">hover 方案卡高亮对应路线</span>' +
       '</div>';
     mapSvg = mapWrap.querySelector('#mapSvg');
     mapTip = mapWrap.querySelector('#mapTip');
-    var g = document.createElementNS(SVG_NS,'g');
-    g.innerHTML = '<path class="land" d="' + LAND_PATH + '"/><path class="land" d="' + HAINAN_PATH + '"/><path class="land" d="' + TAIWAN_PATH + '"/>';
-    mapSvg.appendChild(g);
+    // 底层：中国轮廓
+    var landG = document.createElementNS(SVG_NS,'g');
+    landG.innerHTML = '<path class="land" d="' + LAND_PATH + '"/><path class="land" d="' + HAINAN_PATH + '"/><path class="land" d="' + TAIWAN_PATH + '"/>';
+    mapSvg.appendChild(landG);
+    // 经纬十字网格与度数标注
+    var gridG = document.createElementNS(SVG_NS,'g');
+    var gh = '';
+    var gx, gy;
+    for(gx=0; gx<=1000; gx+=100){
+      gh += '<line class="graticule-line" x1="'+gx+'" y1="0" x2="'+gx+'" y2="800"/>';
+    }
+    for(gy=0; gy<=800; gy+=100){
+      gh += '<line class="graticule-line" x1="0" y1="'+gy+'" x2="1000" y2="'+gy+'"/>';
+    }
+    var lngLabels = [[0,'80°E'],[200,'90°E'],[400,'100°E'],[600,'110°E'],[800,'120°E'],[1000,'130°E']];
+    var latLabels = [[0,'50°N'],[200,'40°N'],[400,'30°N'],[600,'20°N']];
+    lngLabels.forEach(function(l){
+      gh += '<text class="graticule-label" x="'+l[0]+'" y="796" text-anchor="'+(l[0]===0?'start':(l[0]===1000?'end':'middle'))+'">'+l[1]+'</text>';
+    });
+    latLabels.forEach(function(l){
+      gh += '<text class="graticule-label" x="5" y="'+(l[0]+11)+'" text-anchor="start">'+l[1]+'</text>';
+    });
+    gridG.innerHTML = gh;
+    mapSvg.appendChild(gridG);
     cityLayer = document.createElementNS(SVG_NS,'g');
     routeLayer = document.createElementNS(SVG_NS,'g');
     labelLayer = document.createElementNS(SVG_NS,'g');
@@ -932,8 +1156,8 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       var p = CITYPOS[name];
       var c = document.createElementNS(SVG_NS,'circle');
       c.setAttribute('class','cdot');
-      c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r',2.6);
-      c.setAttribute('fill','var(--mute)'); c.setAttribute('opacity',.7);
+      c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r',2.4);
+      c.setAttribute('fill','var(--mute)'); c.setAttribute('opacity',.65);
       c.setAttribute('data-name',name);
       c.addEventListener('mouseenter', function(e){ showTip(name, e); });
       c.addEventListener('mousemove', function(e){ moveTip(e); });
@@ -965,13 +1189,16 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     x = Math.min(x, r.width - 130); y = Math.max(y, 6);
     mapTip.style.left = x + 'px'; mapTip.style.top = y + 'px';
   }
+  /* 大圆微拱贝塞尔弧线：中点向法线方向偏移，长途干线更具空间张力 */
   function smoothPath(pts){
     if(pts.length < 2) return '';
     var d = 'M' + pts[0][0] + ',' + pts[0][1];
     for(var i=1;i<pts.length;i++){
       var p0 = pts[i-1], p1 = pts[i];
-      var mx = Math.round((p0[0]+p1[0])/2);
-      d += ' C' + mx + ',' + p0[1] + ' ' + mx + ',' + p1[1] + ' ' + p1[0] + ',' + p1[1];
+      var dx = p1[0] - p0[0], dy = p1[1] - p0[1];
+      var mx = (p0[0] + p1[0]) / 2 - dy * 0.12;
+      var my = (p0[1] + p1[1]) / 2 + dx * 0.12;
+      d += ' Q' + Math.round(mx) + ',' + Math.round(my) + ' ' + p1[0] + ',' + p1[1];
     }
     return d;
   }
@@ -998,7 +1225,6 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         routeLayer.appendChild(under);
         path.setAttribute('class','seg-path t-' + seg.type + (highlight ? ' hover' : ''));
       }
-      // 按真实路径长度做绘制动画（hover 重画时不重播）
       if(path.getTotalLength){
         var plen = path.getTotalLength();
         if(highlight){
@@ -1010,35 +1236,37 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         }
       }
       routeLayer.appendChild(path);
-      // 标记点
       if(si === 0) marks.push({city:seg.from, role:'from'});
       midStopsOf(seg).forEach(function(c){ if(CITYPOS[c]) marks.push({city:c, role:'mid'}); });
       if(si < r.segs.length-1) marks.push({city:seg.to, role:'xfer'});
       else marks.push({city:seg.to, role:'to'});
     });
-    // 去重标记
     var seenM = {};
     marks.forEach(function(m){
       if(seenM[m.city] && m.role !== 'xfer') return;
       seenM[m.city] = 1;
       var p = CITYPOS[m.city];
       if(!p) return;
-      var el;
+      var mk;
       if(m.role === 'xfer'){
-        el = document.createElementNS(SVG_NS,'circle');
-        el.setAttribute('class','xfer-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',5.5);
+        mk = document.createElementNS(SVG_NS,'circle');
+        mk.setAttribute('class','xfer-dot'); mk.setAttribute('cx',p[0]); mk.setAttribute('cy',p[1]); mk.setAttribute('r',5.5);
       } else if(m.role === 'from'){
-        el = document.createElementNS(SVG_NS,'circle');
-        el.setAttribute('class','from-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',6);
+        // 杭州起点：朱砂实心点 + 西湖水波纹脉冲
+        var pulse = document.createElementNS(SVG_NS,'circle');
+        pulse.setAttribute('class','hz-pulse');
+        pulse.setAttribute('cx',p[0]); pulse.setAttribute('cy',p[1]); pulse.setAttribute('r',12);
+        routeLayer.appendChild(pulse);
+        mk = document.createElementNS(SVG_NS,'circle');
+        mk.setAttribute('class','from-dot'); mk.setAttribute('cx',p[0]); mk.setAttribute('cy',p[1]); mk.setAttribute('r',6);
       } else if(m.role === 'to'){
-        el = document.createElementNS(SVG_NS,'circle');
-        el.setAttribute('class','to-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',5);
+        mk = document.createElementNS(SVG_NS,'circle');
+        mk.setAttribute('class','to-dot'); mk.setAttribute('cx',p[0]); mk.setAttribute('cy',p[1]); mk.setAttribute('r',5);
       } else {
-        el = document.createElementNS(SVG_NS,'circle');
-        el.setAttribute('class','mid-dot'); el.setAttribute('cx',p[0]); el.setAttribute('cy',p[1]); el.setAttribute('r',3.4);
+        mk = document.createElementNS(SVG_NS,'circle');
+        mk.setAttribute('class','mid-dot'); mk.setAttribute('cx',p[0]); mk.setAttribute('cy',p[1]); mk.setAttribute('r',3.2);
       }
-      routeLayer.appendChild(el);
-      // 标签：起终点 + 换乘点
+      routeLayer.appendChild(mk);
       if(m.role === 'from' || m.role === 'to' || m.role === 'xfer'){
         var t = document.createElementNS(SVG_NS,'text');
         t.setAttribute('class','rlabel');
@@ -1050,8 +1278,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     });
   }
   function mapCanRender(r){
-    var ok = CITYPOS['杭州'];
-    if(!ok) return false;
+    if(!CITYPOS['杭州']) return false;
     if(!CITYPOS[state.city]) return false;
     if(!r) return true;
     for(var i=0;i<r.vias.length;i++) if(!CITYPOS[r.vias[i]]) return false;
@@ -1097,7 +1324,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     var city = resolveCity(raw);
     result.innerHTML = '';
     if(!city){
-      result.innerHTML = '<div class="empty-box">未识别该城市。请检查输入，或换个写法（如「乌鲁木齐」「香港」「海西」）。</div>';
+      result.appendChild(emptyBox('未识别该城市。请检查输入，或换个写法（如「乌鲁木齐」「香港」「海西」）。'));
       return;
     }
     q.value = city;
@@ -1105,13 +1332,12 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     pushRecent(city);
     state.city = city;
     state.filter = 'all';
-    state.hoverIdx = -1;
+    state.mapRouteIdx = -1;
 
     if(DIRECT[city]){
       state.kind = 'direct';
       state.direct = DIRECT[city];
-      state.routes = findRoutes('杭州', city) || [];
-      state.routes = state.routes.filter(function(r){ return r.transfers > 0; });
+      state.routes = (findRoutes('杭州', city) || []).filter(function(r){ return r.transfers > 0; });
     } else if(SPECIAL[city]){
       state.kind = 'special';
       state.special = SPECIAL[city];
@@ -1123,40 +1349,83 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
     renderAll();
   }
 
-  function renderAll(){
-    result.innerHTML = '';
-    if(state.kind === 'routes' || (state.kind === 'direct' && state.routes.length)){
-      renderStats();
-      renderFilters();
-      if(state.kind === 'direct') renderDirectCard();
-      if(state.kind === 'routes' && mapCanRender(state.routes[0])) renderMapBlock();
-      else if(state.kind === 'direct' && mapCanRender(null)) renderMapBlockForDirect();
-      renderCards();
-    } else if(state.kind === 'direct'){
-      renderDirectCard();
-      renderMapBlockForDirect();
-    } else if(state.kind === 'special'){
-      renderSpecialCard();
-      renderMapBlockForSpecial();
-    } else {
-      result.innerHTML = '<div class="empty-box">' + esc(state.city) + ' 暂无法规划铁路路线，请以 12306 实时查询为准。</div>';
-    }
+  function emptyBox(msg){
+    var d = el('div','empty-box');
+    d.textContent = msg;
+    return d;
   }
 
-  function renderStats(){
+  function renderAll(){
+    result.innerHTML = '';
+    var kind = state.kind;
+    if(kind === 'routes' && !state.routes.length){
+      result.appendChild(emptyBox(state.city + ' 暂无法规划铁路路线，请以 12306 实时查询为准。'));
+      return;
+    }
+
+    // 瑞士双栏网格
+    var grid = el('div','editorial-grid');
+    var colVisual = el('div','col-visual');
+    var colRoutes = el('div','col-routes');
+    grid.appendChild(colVisual);
+    grid.appendChild(colRoutes);
+    result.appendChild(grid);
+
+    var showStats = (kind === 'routes') || (kind === 'direct' && state.routes.length);
+
+    // 左栏：舆图
+    if(kind === 'routes' && mapCanRender(state.routes[0])){
+      buildMap();
+      state.mapRouteIdx = 0;
+      drawMapRoute(state.routes[0], false);
+      colVisual.appendChild(mapWrap);
+    } else if(kind === 'direct' && mapCanRender(null)){
+      buildMap();
+      state.mapRouteIdx = 0;
+      drawMapRoute(defaultMapRoute(), false);
+      colVisual.appendChild(mapWrap);
+    } else if(kind === 'special' && CITYPOS[state.city]){
+      buildMap();
+      state.mapRouteIdx = 0;
+      routeLayer.innerHTML = '';
+      var p0 = CITYPOS['杭州'], p1 = CITYPOS[state.city];
+      var path = document.createElementNS(SVG_NS,'path');
+      path.setAttribute('d', smoothPath([p0, p1]));
+      path.setAttribute('class','ferry-path');
+      routeLayer.appendChild(path);
+      var dot = document.createElementNS(SVG_NS,'circle');
+      dot.setAttribute('class','to-dot'); dot.setAttribute('cx',p1[0]); dot.setAttribute('cy',p1[1]); dot.setAttribute('r',5);
+      routeLayer.appendChild(dot);
+      var t = document.createElementNS(SVG_NS,'text');
+      t.setAttribute('class','rlabel'); t.setAttribute('x',p1[0]); t.setAttribute('y',p1[1]+22); t.setAttribute('text-anchor','middle');
+      t.textContent = state.city;
+      labelLayer.appendChild(t);
+      colVisual.appendChild(mapWrap);
+    }
+
+    // 左栏：统计矩阵
+    if(showStats) colVisual.appendChild(renderStatsNode());
+    // 右栏：筛选器
+    if(showStats) colRoutes.appendChild(renderFiltersNode());
+
+    // 右栏：卡片
+    if(kind === 'direct') renderDirectCard(colRoutes);
+    if(kind === 'special') renderSpecialCard(colRoutes);
+    if(kind === 'routes' || (kind === 'direct' && state.routes.length)) renderCards(colRoutes);
+  }
+
+  function renderStatsNode(){
     var rs = state.routes;
     var dist = {0:0,1:0,2:0,3:0};
     rs.forEach(function(r){ dist[r.transfers] = (dist[r.transfers]||0) + 1; });
     var t = rs[0];
     var bestLabel = t ? (t.transfers === 0 ? '直达 · 无需换乘' : t.transfers + ' 次换乘 · 全程 ' + (t.segs.every(function(s){return s.type!=='K';}) ? '高速' : '含普速')) : '';
-
-    var card = document.createElement('div');
-    card.className = 'stats-card';
+    var card = el('div','stats-card');
     card.innerHTML =
       '<div class="tiles">' +
         '<div class="tile" style="--tbar:var(--k)"><b>' + dist[0] + '</b><i>直达方案</i></div>' +
-        '<div class="tile' + (dist[1] ? '' : ' zero') + '" style="--tbar:var(--accent)"><b>' + dist[1] + '</b><i>1 次中转</i></div>' +
-        '<div class="tile' + (dist[2] ? '' : ' zero') + '" style="--tbar:var(--d)"><b>' + dist[2] + '</b><i>2 次中转</i></div>' +
+        '<div class="tile' + (dist[1] ? '' : ' zero') + '" style="--tbar:var(--d)"><b>' + dist[1] + '</b><i>1 次中转</i></div>' +
+        '<div class="tile' + (dist[2] ? '' : ' zero') + '" style="--tbar:var(--accent)"><b>' + dist[2] + '</b><i>2 次中转</i></div>' +
         '<div class="tile' + (dist[3] ? '' : ' zero') + '" style="--tbar:var(--transfer)"><b>' + dist[3] + '</b><i>3 次中转</i></div>' +
       '</div>' +
       '<div class="dist">' +
@@ -1164,74 +1433,38 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         '<div class="dist-rows">' +
           [0,1,2,3].map(function(n){
             var w = rs.length ? Math.round(dist[n]/rs.length*100) : 0;
-            var colors = ['var(--k)','var(--accent)','var(--d)','var(--transfer)'];
+            var colors = ['var(--k)','var(--d)','var(--accent)','var(--transfer)'];
             return '<div class="drow"><span class="dl">' + n + ' 次换乘</span><span class="dt"><i style="width:' + w + '%;background:' + colors[n] + '"></i></span><b>' + dist[n] + '</b></div>';
           }).join('') +
         '</div>' +
       '</div>' +
       '<div class="stats-foot"><span>最优方案</span><span class="chipf">' + esc(bestLabel) + '</span><span class="src">' + esc(state.city) + ' · 从杭州出发</span></div>';
-    result.appendChild(card);
+    return card;
   }
 
-  function renderFilters(){
-    var bar = document.createElement('div');
-    bar.className = 'filter-bar';
+  function renderFiltersNode(){
+    var bar = el('div','filter-bar');
     bar.setAttribute('role','group');
     bar.setAttribute('aria-label','方案筛选');
     FILTERS.forEach(function(f){
-      var shown = state.routes.length;
-      var b = document.createElement('button');
+      var b = el('button','seg-btn');
       b.type = 'button';
-      b.className = 'seg-btn';
       b.setAttribute('aria-pressed', state.filter === f.id ? 'true' : 'false');
-      b.innerHTML = esc(f.label) + (f.id === 'all' ? '<span class="cnt">' + shown + '</span>' : '');
+      b.innerHTML = esc(f.label) + (f.id === 'all' ? '<span class="cnt">' + state.routes.length + '</span>' : '');
       b.addEventListener('click', function(){
         state.filter = f.id;
         renderAll();
       });
       bar.appendChild(b);
     });
-    result.appendChild(bar);
+    return bar;
   }
 
-  function renderMapBlock(){
-    buildMap();
-    state.mapRouteIdx = 0;
-    drawMapRoute(state.routes[0], false);
-    result.appendChild(mapWrap);
-  }
-  function renderMapBlockForDirect(){
-    if(!mapCanRender(null)) return;
-    buildMap();
-    var r = { transfers:0, segs:[{line:'贯通:' + state.city, type:state.direct.t, from:'杭州', to:state.city}], vias:[] };
-    drawMapRoute(r, false);
-    result.appendChild(mapWrap);
-  }
-  function renderMapBlockForSpecial(){
-    if(!CITYPOS[state.city]) return;
-    buildMap();
-    var r = { transfers:0, segs:[{line:'特殊方向', type:'K', from:'杭州', to:state.city}], vias:[] };
-    routeLayer.innerHTML = '';
-    var p0 = CITYPOS['杭州'], p1 = CITYPOS[state.city];
-    var path = document.createElementNS(SVG_NS,'path');
-    path.setAttribute('d', smoothPath([p0, p1]));
-    path.setAttribute('class','ferry-path');
-    routeLayer.appendChild(path);
-    var dot = document.createElementNS(SVG_NS,'circle');
-    dot.setAttribute('class','to-dot'); dot.setAttribute('cx',p1[0]); dot.setAttribute('cy',p1[1]); dot.setAttribute('r',5);
-    routeLayer.appendChild(dot);
-    var t = document.createElementNS(SVG_NS,'text');
-    t.setAttribute('class','rlabel'); t.setAttribute('x',p1[0]); t.setAttribute('y',p1[1]+22); t.setAttribute('text-anchor','middle');
-    t.textContent = state.city;
-    labelLayer.appendChild(t);
-    result.appendChild(mapWrap);
-  }
-
-  function renderDirectCard(){
+  function renderDirectCard(colRoutes){
     var dr = state.direct;
-    var card = document.createElement('section');
-    card.className = 'card anim-in';
+    var card = el('section','card anim-in');
     card.innerHTML =
+      '<span class="route-no">NO. 01 // DIRECT · 贯通车次</span>' +
       '<div class="card-head">' +
         '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
         '<div class="card-badges">' +
@@ -1260,14 +1493,14 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       '</div>';
     card.querySelector('.btn12306').addEventListener('click', function(){ window.open('https://kyfw.12306.cn/otn/leftTicket/init','_blank'); });
     card.querySelector('.btn-copy').addEventListener('click', function(){ copyText(this.getAttribute('data-text'), this); });
-    result.appendChild(card);
+    colRoutes.appendChild(card);
   }
 
-  function renderSpecialCard(){
+  function renderSpecialCard(colRoutes){
     var sp = state.special;
-    var card = document.createElement('section');
-    card.className = 'card card--special anim-in';
+    var card = el('section','card card--special anim-in');
     card.innerHTML =
+      '<span class="route-no">SPECIAL // 特殊目的地</span>' +
       '<div class="card-head">' +
         '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
         '<div class="card-badges"><span class="badge badge--sp">特殊目的地</span></div>' +
@@ -1281,28 +1514,21 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       '</div>';
     card.querySelector('.btn12306').addEventListener('click', function(){ window.open('https://kyfw.12306.cn/otn/leftTicket/init','_blank'); });
     card.querySelector('.btn-copy').addEventListener('click', function(){ copyText(this.getAttribute('data-text'), this); });
-    result.appendChild(card);
+    colRoutes.appendChild(card);
   }
 
-  function renderCards(){
+  function renderCards(colRoutes){
     var rs = filterRoutes();
+    var sec = el('p','sec-label');
+    sec.textContent = rs.length ? 'ROUTES · 可行方案 ' + String(rs.length).padStart(2,'0') : 'ROUTES · 无匹配方案';
+    colRoutes.appendChild(sec);
     if(!rs.length){
-      result.appendChild((function(){
-        var d = document.createElement('div');
-        d.className = 'empty-box';
-        d.textContent = '当前筛选条件下无方案，试试其他筛选。';
-        return d;
-      })());
+      colRoutes.appendChild(emptyBox('当前筛选条件下无方案，试试其他筛选。'));
       return;
     }
-    var sec = document.createElement('p');
-    sec.className = 'sec-label';
-    sec.textContent = '可行方案 · 按推荐排序';
-    result.appendChild(sec);
 
     rs.forEach(function(r, idx){
-      var card = document.createElement('section');
-      card.className = 'card anim-in';
+      var card = el('section','card anim-in');
       card.style.animationDelay = (idx * 60) + 'ms';
       card.setAttribute('data-idx', idx);
 
@@ -1315,8 +1541,8 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       else if(allTypes.indexOf('K') < 0) typeBadge = '<span class="badge badge--plain">全程高速</span>';
       else typeBadge = '<span class="badge badge--plain">含普速段</span>';
 
-      var head = document.createElement('div');
-      head.className = 'card-head';
+      var no = String(idx+1).padStart(2,'0');
+      var head = el('div','card-head');
       head.innerHTML =
         '<div class="od"><span>杭州</span><span class="arr">→</span><span>' + esc(state.city) + '</span></div>' +
         '<div class="card-badges">' +
@@ -1326,9 +1552,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
           typeBadge +
         '</div>';
 
-      // 轨道示意图
-      var schem = document.createElement('ul');
-      schem.className = 'schem';
+      var schem = el('ul','schem');
       schem.setAttribute('role','list');
       var parts = [];
       r.segs.forEach(function(seg, si){
@@ -1355,9 +1579,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       });
       schem.innerHTML = parts.join('');
 
-      // 信息面板
-      var panel = document.createElement('div');
-      panel.className = 'panel';
+      var panel = el('div','panel');
       var segCount = r.segs.length;
       var ferryCount = r.segs.filter(function(s){ return s.line.indexOf('轮渡') >= 0; }).length;
       var panelHtml =
@@ -1373,7 +1595,6 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       } else {
         panelHtml += '<div class="callout callout--ok">✓ <span><b>直达</b> — 沿 ' + esc(lineLabel(r.segs[0])) + ' 直达' + esc(state.city) + '，无需下车换乘</span></div>';
       }
-      // 停靠站（超过 12 站折叠，可展开）
       var allMid = [];
       r.segs.forEach(function(seg){ allMid = allMid.concat(midStopsOf(seg)); });
       if(allMid.length){
@@ -1387,7 +1608,6 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
           panelHtml += '</div>';
         }
       }
-      // 换乘明细
       panelHtml += '<div class="t-list">' + r.segs.map(function(seg, si){
         var lt = seg.line.indexOf('轮渡') >= 0 ? 'F' : seg.type;
         return '<div class="t-row"><span class="t-idx">' + (si+1) + '</span><span class="linetype ' + lt + '">' + lt + '</span><span class="lname">' + esc(lineLabel(seg)) + '</span><span>' + esc(seg.from) + ' → ' + esc(seg.to) + '</span></div>';
@@ -1399,6 +1619,8 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
       '</div>';
       panel.innerHTML = panelHtml;
 
+      card.appendChild(el('span','route-no'));
+      card.querySelector('.route-no').textContent = 'NO. ' + no + (idx === 0 ? ' // RECOMMENDED' : '');
       card.appendChild(head);
       card.appendChild(schem);
       card.appendChild(panel);
@@ -1409,8 +1631,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         expandBtn.addEventListener('click', function(){
           var hidden = expandBtn.getAttribute('data-hidden').split('|');
           hidden.forEach(function(c){
-            var s = document.createElement('span');
-            s.className = 'stop';
+            var s = el('span','stop');
             s.textContent = c;
             expandBtn.parentNode.querySelector('.stops-grid').appendChild(s);
           });
@@ -1418,7 +1639,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
         });
       }
 
-      // 地图联动
+      // 地图联动（左栏 Sticky 舆图同屏可见）
       if(mapWrap){
         card.addEventListener('mouseenter', function(){
           state.mapRouteIdx = idx;
@@ -1431,7 +1652,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
           }
         });
       }
-      result.appendChild(card);
+      colRoutes.appendChild(card);
     });
   }
 
@@ -1445,8 +1666,7 @@ body::before{content:"";display:block;height:3px;background:linear-gradient(90de
   Object.keys(byProv).sort(function(a,b){
     return (a==='其他'?1:0)-(b==='其他'?1:0) || a.localeCompare(b,'zh');
   }).forEach(function(p){
-    var box = document.createElement('div');
-    box.className = 'p';
+    var box = el('div','p');
     box.innerHTML = '<b>' + p + '</b><span>' + byProv[p].sort(function(a,b){return a.localeCompare(b,'zh');}).join('、') + '</span>';
     provGrid.appendChild(box);
   });
